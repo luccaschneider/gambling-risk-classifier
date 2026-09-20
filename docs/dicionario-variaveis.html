@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dicionário de Variáveis — Modelo de Classificação de Risco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F2;
+    --card:#FFFFFF;
+    --ink:#161D1A;
+    --ink-soft:#5C6661;
+    --ink-faint:#8A938E;
+    --rule:#DCE0D9;
+    --rule-strong:#C3C9C0;
+    --accent:#2B5F5A;
+    --accent-wash:#E7EFEC;
+    --warn:#AE4132;
+    --warn-wash:#F8E7E3;
+    --base:#2B5F5A;
+    --deriv:#7A5C9E;
+    --deriv-wash:#EFEAF5;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 32px;}
+  h1,h2,h3,h4,.ui{font-family:"Archivo",system-ui,sans-serif;}
+  p{margin:0 0 1.05em;} p:last-child{margin-bottom:0;}
+  strong{font-weight:600;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+
+  /* Cabeçalho */
+  .head{padding:76px 0 0;border-bottom:1px solid var(--rule-strong);}
+  .head-eyebrow{
+    font-family:"Archivo",sans-serif;font-size:12px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:22px;
+  }
+  .head h1{
+    font-size:clamp(32px,5vw,50px);font-weight:700;letter-spacing:-.025em;
+    line-height:1.06;margin:0 0 20px;max-width:20ch;
+  }
+  .head-sub{font-size:19px;color:var(--ink-soft);max-width:64ch;margin-bottom:34px;}
+  .head-meta{display:flex;flex-wrap:wrap;border-top:1px solid var(--rule);}
+  .head-meta div{padding:16px 28px 20px 0;margin-right:28px;border-right:1px solid var(--rule);}
+  .head-meta div:last-child{border-right:none;margin-right:0;}
+  .head-meta dt{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px;
+  }
+  .head-meta dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:500;}
+
+  /* Blocos */
+  .bloco{padding:52px 0;border-bottom:1px solid var(--rule);}
+  .bloco > h2{
+    font-size:13px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 26px;
+  }
+  .corpo{max-width:66ch;}
+  .corpo h3{font-size:21px;font-weight:600;letter-spacing:-.012em;margin:30px 0 10px;}
+  .corpo h3:first-child{margin-top:0;}
+
+  /* Avisos */
+  .aviso{
+    margin:22px 0;padding:18px 22px;background:var(--warn-wash);
+    border-left:3px solid var(--warn);border-radius:0 4px 4px 0;max-width:70ch;font-size:16px;
+  }
+  .aviso-rot{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--warn);margin-bottom:6px;
+  }
+  .nota{
+    margin:22px 0;padding:18px 22px;background:var(--accent-wash);
+    border-left:3px solid var(--accent);border-radius:0 4px 4px 0;max-width:70ch;font-size:16px;
+  }
+  .nota-rot{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;
+  }
+
+  /* Fichas de variável */
+  .grupo-rot{
+    font-family:"Archivo",sans-serif;font-size:11px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+    margin:44px 0 18px;padding-bottom:9px;border-bottom:1px solid var(--rule-strong);
+  }
+  .grupo-rot:first-of-type{margin-top:0;}
+  .var{
+    background:var(--card);border:1px solid var(--rule);border-radius:6px;
+    padding:26px 28px;margin-bottom:20px;
+  }
+  .var-topo{
+    display:flex;align-items:baseline;flex-wrap:wrap;gap:11px;
+    padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--rule);
+  }
+  .var-nome{
+    font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;
+    letter-spacing:-.01em;color:var(--ink);
+  }
+  .selo{
+    font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;padding:3.5px 8px;border-radius:3px;
+    background:var(--accent-wash);color:var(--accent);white-space:nowrap;
+  }
+  .selo.s-deriv{background:var(--deriv-wash);color:var(--deriv);}
+  .selo.s-tipo{background:#EDF0EC;color:var(--ink-soft);}
+  .var-campo{margin-bottom:16px;}
+  .var-campo:last-child{margin-bottom:0;}
+  .var-rot{
+    font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;
+  }
+  .var-txt{font-size:16px;max-width:72ch;}
+  .formula{
+    font-family:"IBM Plex Mono",monospace;font-size:13.5px;
+    background:#EDF0EC;border:1px solid var(--rule);border-left:2.5px solid var(--accent);
+    padding:11px 14px;border-radius:0 4px 4px 0;display:block;line-height:1.5;
+  }
+  .var.deriv .formula{border-left-color:var(--deriv);}
+
+  /* Estatísticas */
+  .stats{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+    gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:4px;overflow:hidden;
+  }
+  .stat{background:var(--card);padding:10px 12px;}
+  .stat dt{
+    font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:3px;
+  }
+  .stat dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:500;}
+  .stat.destaque{background:var(--accent-wash);}
+  .stat.destaque dd{color:var(--accent);font-weight:600;}
+
+  /* Tabelas */
+  .tabela-env{
+    overflow-x:auto;margin:14px 0;border:1px solid var(--rule);
+    border-radius:5px;background:var(--card);
+  }
+  table{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",monospace;font-size:13.5px;}
+  th{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);
+    text-align:right;padding:11px 14px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;
+  }
+  th:first-child{text-align:left;}
+  td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap;}
+  td:first-child{text-align:left;font-family:"IBM Plex Mono",monospace;font-size:13px;}
+  td.txt{
+    text-align:left;font-family:"Source Serif 4",serif;
+    font-size:15.5px;white-space:normal;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tr.alerta td{background:var(--warn-wash);}
+  .neg{color:var(--warn);font-weight:600;}
+
+  /* Lista de regras */
+  .regras{counter-reset:reg;max-width:70ch;}
+  .regra{
+    display:grid;grid-template-columns:32px 1fr;gap:15px;
+    padding:18px 0;border-bottom:1px solid var(--rule);
+  }
+  .regra:last-child{border-bottom:none;}
+  .regra::before{
+    counter-increment:reg;content:counter(reg,decimal-leading-zero);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+    color:var(--accent);padding-top:4px;
+  }
+  .regra h4{font-size:17px;font-weight:600;margin:0 0 5px;letter-spacing:-.008em;}
+  .regra p{font-size:16px;color:var(--ink-soft);}
+
+  footer{
+    padding:40px 0 70px;font-family:"Archivo",sans-serif;font-size:12.5px;
+    color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  }
+
+  @media (max-width:720px){
+    body{font-size:16px;}
+    .wrap{padding:0 20px;}
+    .head{padding-top:48px;}
+    .head-meta div{border-right:none;padding-right:0;margin-right:0;padding-bottom:12px;}
+    .var{padding:20px;}
+  }
+  @media print{
+    body{background:#fff;font-size:10.5pt;}
+    .var{break-inside:avoid;}
+    .bloco{padding:24px 0;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="wrap">
+    <div class="head-eyebrow">Especificação técnica de integração</div>
+    <h1>Dicionário de variáveis do modelo</h1>
+    <p class="head-sub">Definição operacional, regra de cálculo, unidade e distribuição observada das doze variáveis comportamentais que compõem a entrada do modelo de classificação de risco. Documento de referência para quem for integrar ou reproduzir o modelo.</p>
+    <dl class="head-meta">
+      <div><dt>Variáveis</dt><dd>12</dd></div>
+      <div><dt>Base de referência</dt><dd>bwin — Gray et al. (2012)</dd></div>
+      <div><dt>Usuários</dt><dd>4.113</dd></div>
+      <div><dt>Valores ausentes</dt><dd>0</dd></div>
+    </dl>
+  </div>
+</header>
+
+<!-- ORIENTAÇÕES -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Antes de integrar</h2>
+    <div class="corpo">
+      <p>O modelo recebe doze números já calculados. Ele não processa registros brutos de apostas — a agregação por usuário é responsabilidade de quem integra. Esta seção reúne o que precisa estar correto para que a classificação seja válida.</p>
+
+      <div class="aviso">
+        <div class="aviso-rot">A ordem das variáveis é obrigatória</div>
+        <p>O modelo espera as doze colunas na ordem exata registrada em <span class="mono">metadata.json</span>. Colunas trocadas de posição não produzem erro — produzem uma classificação incorreta sem nenhum aviso. Reordene sempre pela lista dos metadados antes de chamar a predição.</p>
+      </div>
+
+      <div class="aviso">
+        <div class="aviso-rot">Valores ausentes são preenchidos silenciosamente</div>
+        <p>O pipeline embutido substitui qualquer valor ausente pela mediana calculada no treino, sem emitir aviso. Uma predição feita com três das doze variáveis ausentes retorna normalmente, com aparência de confiabilidade idêntica a uma predição completa. Verifique a integridade da entrada antes de chamar o modelo.</p>
+      </div>
+
+      <div class="aviso">
+        <div class="aviso-rot">Valores absolutos não transferem entre populações</div>
+        <p>As faixas documentadas aqui refletem a base bwin entre 2005 e 2007. Uma plataforma com perfil de movimentação diferente produzirá classificações deslocadas se enviar valores absolutos. A conversão de moeda não resolve o problema, porque o modelo aprendeu posições relativas dentro daquela população, não patamares monetários. Consulte o guia de uso e limitações antes de aplicar a outro contexto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISTRIBUIÇÃO -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Sobre a distribuição dos dados</h2>
+    <div class="corpo">
+      <p>Um traço da base merece atenção antes das definições individuais: as variáveis monetárias e de contagem apresentam assimetria acentuada à direita. A média é várias vezes maior que a mediana, indicando que uma minoria de usuários de volume muito elevado desloca todo o valor médio.</p>
+
+      <div class="tabela-env">
+        <table>
+          <thead><tr><th>Variável</th><th>Mediana</th><th>Média</th><th>Razão</th></tr></thead>
+          <tbody>
+            <tr class="alerta"><td>total_apostado</td><td>1.416,01</td><td>66.016,88</td><td>46,6×</td></tr>
+            <tr class="alerta"><td>total_perdas</td><td>143,03</td><td>3.130,16</td><td>21,9×</td></tr>
+            <tr class="alerta"><td>numero_total_apostas</td><td>725</td><td>10.729,89</td><td>14,8×</td></tr>
+            <tr><td>desvio_padrao_apostado</td><td>45,63</td><td>534,85</td><td>11,7×</td></tr>
+            <tr><td>media_diaria_apostada</td><td>33,53</td><td>288,17</td><td>8,6×</td></tr>
+            <tr><td>media_apostas_por_produto</td><td>252,25</td><td>2.150,36</td><td>8,5×</td></tr>
+            <tr><td>intensidade_apostas_por_dia_ativo</td><td>11,98</td><td>50,34</td><td>4,2×</td></tr>
+            <tr><td>total_dias_ativos</td><td>62</td><td>159,75</td><td>2,6×</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>O caso mais extremo é <span class="mono">total_apostado</span>: metade dos usuários movimentou menos de 1.416 no histórico completo, enquanto o máximo observado ultrapassa doze milhões. A média de 66 mil não descreve nenhum usuário típico.</p>
+
+      <div class="nota">
+        <div class="nota-rot">Implicação prática</div>
+        <p>Essa assimetria é o argumento técnico central para normalizar por percentil em vez de usar valores absolutos ao aplicar o modelo a outra população. Em distribuições com cauda longa, pequenas diferenças de escala entre populações deslocam uma fração grande dos usuários para faixas incorretas. O percentil é invariante a esse tipo de diferença.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VARIÁVEIS -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>As doze variáveis</h2>
+
+    <div class="grupo-rot">Variáveis base — agregadas diretamente dos registros diários</div>
+
+    <!-- 1 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">total_dias_ativos</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Inteiro</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Número de dias distintos em que o usuário registrou pelo menos uma aposta, ao longo de todo o histórico disponível.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">nunique(Date) agrupado por UserID</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: dias</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>1</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>14</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>62</dd></div>
+          <div class="stat"><dt>Média</dt><dd>159,8</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>201</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>2.356</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">O mínimo é estruturalmente 1, já que o usuário só aparece na base se apostou ao menos um dia. <strong>162 usuários (3,9%) têm exatamente um dia ativo</strong> — nesses casos, <span class="mono">media_diaria_apostada</span> iguala <span class="mono">total_apostado</span>, e <span class="mono">desvio_padrao_apostado</span>, <span class="mono">tendencia_crescimento_apostado</span> e <span class="mono">concentracao_apostas_dias_ativos</span> são forçados a zero por indefinição estatística.</div>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">total_apostado</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Soma de todo o valor apostado pelo usuário, considerando todos os produtos e todos os dias do histórico. Corresponde ao <em>turnover</em> acumulado, não ao saldo movimentado.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">sum(Turnover) agrupado por UserID</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: monetária</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>0</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>167,26</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>1.416,01</dd></div>
+          <div class="stat"><dt>Média</dt><dd>66.016,88</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>19.863,43</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>12.123.136,88</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt"><strong>96 usuários com total apostado igual a zero.</strong> Como esta variável é o denominador de <span class="mono">taxa_perda_sobre_apostado</span>, a divisão por zero é tratada substituindo o denominador por ausente e preenchendo o resultado com zero. É a variável de maior amplitude e maior assimetria de toda a base.</div>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">total_perdas</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Resultado líquido acumulado da operadora sobre o usuário. Valor positivo indica que o usuário perdeu no agregado; <strong>valor negativo indica que o usuário ficou no lucro</strong>.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">sum(Hold) agrupado por UserID</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: monetária</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd class="neg">−35.851,11</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>25,00</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>143,03</dd></div>
+          <div class="stat"><dt>Média</dt><dd>3.130,16</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>1.564,10</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>181.056,00</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt"><strong>408 usuários (9,9%) apresentam valor negativo.</strong> Apesar do nome, a variável não representa apenas perdas: admite valores negativos quando o usuário ganhou mais do que perdeu no acumulado. Isso é dado válido da base original, não erro de processamento. Quem integrar deve enviar o resultado líquido, e não a soma apenas das apostas perdidas.</div>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">numero_total_apostas</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Contagem</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Quantidade total de apostas individuais realizadas pelo usuário em todo o histórico, somando todos os produtos.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">sum(NumberofBets) agrupado por UserID</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: apostas</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>1</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>76</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>725</dd></div>
+          <div class="stat"><dt>Média</dt><dd>10.729,9</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>5.402</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>2.371.197</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Sem risco de indefinição. Serve de numerador em duas variáveis derivadas: <span class="mono">intensidade_apostas_por_dia_ativo</span> e <span class="mono">media_apostas_por_produto</span>.</div>
+      </div>
+    </article>
+
+    <!-- 5 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">variedade_produtos</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Contagem</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Número de tipos distintos de produto em que o usuário apostou — por exemplo apostas esportivas de cota fixa, apostas ao vivo, cassino e pôquer.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">nunique(ProductType) agrupado por UserID</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: produtos</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>1</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>2</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>3</dd></div>
+          <div class="stat"><dt>Média</dt><dd>3,42</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>5</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>14</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt"><strong>687 usuários (16,7%) jogaram em apenas um tipo de produto.</strong> Nesses casos <span class="mono">media_apostas_por_produto</span> iguala <span class="mono">numero_total_apostas</span>, perdendo o efeito de diluição que a variável pretende medir. O mínimo estrutural de 1 elimina risco de divisão por zero.</div>
+      </div>
+    </article>
+
+    <!-- 6 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">media_diaria_apostada</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Valor médio apostado por dia ativo. A agregação é feita primeiro somando o valor apostado dentro de cada dia, e só então calculando a média entre os dias.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">mean( sum(Turnover) agrupado por UserID + Date )</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: monetária por dia</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>0</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>7,89</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>33,53</dd></div>
+          <div class="stat"><dt>Média</dt><dd>288,17</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>173,91</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>41.562,40</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Para usuários com um único dia ativo, o valor é idêntico ao <span class="mono">total_apostado</span>, já que se trata da média de uma única observação. A ordem da agregação importa: somar por dia antes de tirar a média produz resultado diferente de tirar a média direta dos registros individuais, porque um dia pode conter apostas em vários produtos.</div>
+      </div>
+    </article>
+
+    <!-- 7 -->
+    <article class="var">
+      <div class="var-topo">
+        <span class="var-nome">desvio_padrao_apostado</span>
+        <span class="selo">Base</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Dispersão do valor apostado entre os dias ativos. Mede a regularidade do comportamento: valores baixos indicam apostas de montante constante, valores altos indicam alternância entre dias de baixo e alto volume.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">std( sum(Turnover) agrupado por UserID + Date, ddof=1 )</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: monetária por dia</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>0</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>8,65</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>45,63</dd></div>
+          <div class="stat"><dt>Média</dt><dd>534,85</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>285,20</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>65.627,38</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">O desvio padrão amostral é indefinido com uma única observação. <strong>245 usuários (6,0%) apresentam valor exatamente zero</strong>, reunindo dois casos distintos sob o mesmo código: usuários com um único dia ativo, em que o valor é indefinido e foi forçado a zero, e usuários com volume diário genuinamente constante. A distinção entre os dois não é recuperável a partir desta variável isoladamente.</div>
+      </div>
+    </article>
+
+    <div class="grupo-rot">Variáveis derivadas — construídas a partir das anteriores</div>
+
+    <!-- 8 -->
+    <article class="var deriv">
+      <div class="var-topo">
+        <span class="var-nome">taxa_perda_sobre_apostado</span>
+        <span class="selo s-deriv">Derivada</span>
+        <span class="selo s-tipo">Proporção</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Proporção do valor movimentado que se converteu em perda líquida. Distingue quem aposta muito e recupera de quem aposta muito e perde de forma consistente.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">total_perdas / total_apostado</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · adimensional</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd class="neg">−9,457</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>0,043</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>0,119</dd></div>
+          <div class="stat"><dt>Média</dt><dd>0,196</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>0,286</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>1,000</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt"><strong>A faixa válida vai de −9,457 a 1,000</strong> — qualquer validação de entrada precisa aceitar valores negativos. São 407 usuários com taxa negativa, herdada do resultado líquido positivo. Os 96 usuários com valor apostado zero geram divisão indefinida, tratada como zero. Nenhum caso excede 1,0, o que confirma consistência entre as duas variáveis de origem.</div>
+      </div>
+    </article>
+
+    <!-- 9 -->
+    <article class="var deriv">
+      <div class="var-topo">
+        <span class="var-nome">intensidade_apostas_por_dia_ativo</span>
+        <span class="selo s-deriv">Derivada</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Ritmo de apostas nos dias em que o usuário esteve ativo. Separa volume de intensidade: mil apostas distribuídas em trezentos dias descrevem comportamento distinto de mil apostas concentradas em dez dias.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">numero_total_apostas / total_dias_ativos</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: apostas por dia</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>0,5</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>3,30</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>11,98</dd></div>
+          <div class="stat"><dt>Média</dt><dd>50,34</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>41,43</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>1.512,08</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Sem risco estrutural de divisão por zero, já que o denominador é sempre maior ou igual a 1 por construção da base.</div>
+      </div>
+    </article>
+
+    <!-- 10 -->
+    <article class="var deriv">
+      <div class="var-topo">
+        <span class="var-nome">tendencia_crescimento_apostado</span>
+        <span class="selo s-deriv">Derivada</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Inclinação da reta de regressão do valor apostado diário contra o tempo. Valor positivo indica escalada do montante ao longo do histórico; negativo indica redução.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">linregress( dias_desde_primeira_aposta, turnover_diario ).slope</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: monetária por dia</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd class="neg">−5.313,52</dd></div>
+          <div class="stat"><dt>Q1</dt><dd class="neg">−0,088</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>−0,0006</dd></div>
+          <div class="stat"><dt>Média</dt><dd>1,876</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>0,055</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>6.780,00</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Forçada a zero quando há menos de dois dias ativos ou quando todas as apostas caem na mesma data, totalizando <strong>245 usuários (6,0%) com valor exatamente zero</strong>. A distribuição é peculiar: metade central extremamente concentrada em torno de zero, entre −0,088 e 0,055, com caudas que alcançam milhares em ambas as direções. Poucos dias ativos muito espaçados tornam a inclinação altamente sensível a observações isoladas. É a variável de menor importância no modelo final, e essa instabilidade explica em parte o resultado.</div>
+      </div>
+    </article>
+
+    <!-- 11 -->
+    <article class="var deriv">
+      <div class="var-topo">
+        <span class="var-nome">concentracao_apostas_dias_ativos</span>
+        <span class="selo s-deriv">Derivada</span>
+        <span class="selo s-tipo">Índice</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Coeficiente de Gini aplicado à distribuição do valor apostado entre os dias ativos. Mede se a atividade está espalhada de forma regular ou concentrada em poucos dias de intensidade elevada.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">gini( turnover_diario ) — 0 = distribuição uniforme, 1 = concentração total</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · adimensional</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>0</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>0,501</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>0,619</dd></div>
+          <div class="stat"><dt>Média</dt><dd>0,599</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>0,743</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>0,998</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Forçada a zero quando há um único dia ativo ou quando a soma do valor apostado é nula, situações em que a fórmula é indefinida — os mesmos <strong>245 usuários (6,0%)</strong> das duas variáveis anteriores. Note que zero aqui é ambíguo: representa tanto distribuição perfeitamente uniforme quanto indefinição. É a única variável cuja média e mediana praticamente coincidem, indicando distribuição simétrica.</div>
+      </div>
+    </article>
+
+    <!-- 12 -->
+    <article class="var deriv">
+      <div class="var-topo">
+        <span class="var-nome">media_apostas_por_produto</span>
+        <span class="selo s-deriv">Derivada</span>
+        <span class="selo s-tipo">Decimal</span>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Definição</div>
+        <div class="var-txt">Número médio de apostas por tipo de produto acessado. Distingue o usuário que concentra atividade em poucos produtos daquele que distribui o mesmo volume por várias modalidades.</div>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Cálculo</div>
+        <code class="formula">numero_total_apostas / variedade_produtos</code>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Distribuição observada · unidade: apostas por produto</div>
+        <dl class="stats">
+          <div class="stat"><dt>Mínimo</dt><dd>1</dd></div>
+          <div class="stat"><dt>Q1</dt><dd>38</dd></div>
+          <div class="stat destaque"><dt>Mediana</dt><dd>252,25</dd></div>
+          <div class="stat"><dt>Média</dt><dd>2.150,36</dd></div>
+          <div class="stat"><dt>Q3</dt><dd>1.335</dd></div>
+          <div class="stat"><dt>Máximo</dt><dd>474.239,40</dd></div>
+        </dl>
+      </div>
+      <div class="var-campo">
+        <div class="var-rot">Casos especiais</div>
+        <div class="var-txt">Sem risco de divisão por zero, pois o denominador é sempre maior ou igual a 1. Para os 687 usuários de produto único, o valor coincide com <span class="mono">numero_total_apostas</span>.</div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- CASOS ESPECIAIS -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Síntese dos casos especiais</h2>
+    <div class="corpo">
+      <p>Situações que exigem tratamento explícito por quem for calcular as variáveis. Todas já estão resolvidas no pipeline de referência; a tabela serve para reprodução em outro ambiente.</p>
+    </div>
+    <div class="tabela-env">
+      <table>
+        <thead><tr><th>Situação</th><th>Usuários</th><th style="text-align:left;">Tratamento</th></tr></thead>
+        <tbody>
+          <tr><td>Um único dia ativo</td><td>162 · 3,9%</td><td class="txt">Desvio padrão, tendência e concentração forçados a zero</td></tr>
+          <tr><td>Valor apostado igual a zero</td><td>96 · 2,3%</td><td class="txt">Taxa de perda definida como zero após substituir o denominador</td></tr>
+          <tr class="alerta"><td>Resultado líquido negativo</td><td>408 · 9,9%</td><td class="txt">Mantido como está — valor válido, não é erro</td></tr>
+          <tr><td>Produto único</td><td>687 · 16,7%</td><td class="txt">Sem tratamento — média por produto iguala o total de apostas</td></tr>
+          <tr><td>Estatística indefinida</td><td>245 · 6,0%</td><td class="txt">Três variáveis forçadas a zero por indefinição</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- REGRAS -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Regras de validação recomendadas</h2>
+    <div class="corpo">
+      <p>Verificações a implementar antes de submeter dados ao modelo, em ordem de criticidade.</p>
+    </div>
+    <div class="regras">
+      <div class="regra">
+        <div>
+          <h4>Conferir presença e ordem das doze variáveis</h4>
+          <p>Comparar com a lista de <span class="mono">metadata.json</span> e reordenar se necessário. Ausência deve gerar erro explícito, não imputação silenciosa.</p>
+        </div>
+      </div>
+      <div class="regra">
+        <div>
+          <h4>Rejeitar valores negativos onde são impossíveis</h4>
+          <p>Dias ativos, valor apostado, número de apostas, variedade de produtos, média diária, desvio padrão, intensidade, concentração e média por produto não admitem valores negativos. Três variáveis aceitam: <span class="mono">total_perdas</span>, quando o usuário ficou no lucro; <span class="mono">taxa_perda_sobre_apostado</span>, pela mesma razão; e <span class="mono">tendencia_crescimento_apostado</span>, em que valor negativo indica redução do montante apostado ao longo do tempo — situação comum, observada em mais da metade da base.</p>
+        </div>
+      </div>
+      <div class="regra">
+        <div>
+          <h4>Verificar coerência entre variáveis dependentes</h4>
+          <p>A intensidade deve corresponder ao número de apostas dividido pelos dias ativos, e a média por produto ao número de apostas dividido pela variedade. Divergência indica erro de cálculo na origem.</p>
+        </div>
+      </div>
+      <div class="regra">
+        <div>
+          <h4>Limitar a concentração ao intervalo válido</h4>
+          <p>O coeficiente de Gini pertence obrigatoriamente ao intervalo entre 0 e 1. Valores fora indicam erro de implementação da fórmula.</p>
+        </div>
+      </div>
+      <div class="regra">
+        <div>
+          <h4>Sinalizar entradas fora da faixa de referência</h4>
+          <p>Valores muito acima do máximo observado não impedem a predição, mas o modelo satura na folha mais extrema em vez de extrapolar. A predição permanece válida, embora a probabilidade não diferencie graus além do limite conhecido.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:14px;padding:0 32px;">
+    <span>Dicionário de variáveis — modelo de classificação de risco</span>
+    <span class="mono">12 variáveis · 7 base · 5 derivadas</span>
+  </div>
+</footer>
+
+</body>
+</html>

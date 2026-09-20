@@ -1,0 +1,80 @@
+COMO RODAR A API
+================
+
+Pré-requisito (só na primeira vez)
+----------------------------------
+Abrir o terminal na pasta do projeto e instalar as dependências:
+
+    pip install -r requirements.txt
+
+
+Iniciar o servidor
+------------------
+No terminal, dentro da pasta do projeto:
+
+    uvicorn api:app --reload --port 8000
+
+Quando aparecer a mensagem "Application startup complete", está no ar.
+Deixar o terminal aberto — fechar ou apertar Ctrl+C derruba o servidor.
+
+
+Acessar no navegador
+--------------------
+Documentação interativa (é aqui que se testa tudo):
+
+    http://127.0.0.1:8000/docs
+
+Atenção: a raiz http://127.0.0.1:8000 retorna 404.
+Isso é esperado — não existe endpoint nesse caminho.
+
+
+Endpoints disponíveis
+---------------------
+POST /classificar   Recebe as 12 variáveis e devolve a classificação
+GET  /saude         Confirma que o modelo está carregado
+GET  /variaveis     Lista as variáveis esperadas, na ordem, com as faixas
+
+Os dois GET podem ser acessados direto pelo navegador:
+
+    http://127.0.0.1:8000/saude
+    http://127.0.0.1:8000/variaveis
+
+
+Como testar pelo Swagger
+------------------------
+1. Abrir http://127.0.0.1:8000/docs
+2. Clicar no endpoint para expandir
+3. Clicar em "Try it out"
+4. No POST, o payload de exemplo já vem preenchido — editar se quiser
+5. Clicar em "Execute"
+6. A resposta aparece logo abaixo, em "Server response"
+
+
+Parar o servidor
+----------------
+Ctrl+C no terminal.
+
+
+Se der erro
+-----------
+"uvicorn não é reconhecido"
+    Dependências não instaladas. Rodar o pip install acima.
+
+"address already in use" / porta ocupada
+    Já existe um servidor rodando nessa porta.
+    Usar outra: uvicorn api:app --reload --port 8001
+    (e trocar 8000 por 8001 nos endereços)
+
+"ModuleNotFoundError"
+    Faltou alguma biblioteca. Rodar o pip install novamente.
+
+Erro ao carregar o modelo
+    Verificar se a pasta modelo/ está no mesmo diretório do api.py,
+    com os arquivos xgboost_tunado_comportamental.joblib e metadata.json.
+
+
+Observação
+----------
+A página /docs não é um arquivo salvo. Ela é gerada pelo FastAPI a cada
+execução, a partir do código em api.py. Para acessá-la novamente basta
+repetir os dois passos: subir o servidor e abrir o endereço no navegador.

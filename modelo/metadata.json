@@ -1,0 +1,120 @@
+{
+  "descricao": "XGBoost tunado, 12 variaveis comportamentais, sem balanceamento (modelo oficial)",
+  "features_entrada_ordem": [
+    "total_dias_ativos",
+    "total_apostado",
+    "total_perdas",
+    "numero_total_apostas",
+    "variedade_produtos",
+    "media_diaria_apostada",
+    "desvio_padrao_apostado",
+    "taxa_perda_sobre_apostado",
+    "intensidade_apostas_por_dia_ativo",
+    "tendencia_crescimento_apostado",
+    "concentracao_apostas_dias_ativos",
+    "media_apostas_por_produto"
+  ],
+  "classes": {
+    "ordem_risco": [
+      "Baixo risco",
+      "Medio risco",
+      "Alto risco"
+    ],
+    "mapeamento_label_encoder": {
+      "Baixo risco": 1,
+      "Medio risco": 2,
+      "Alto risco": 0
+    }
+  },
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratify": true
+  },
+  "hiperparametros_xgboost": {
+    "n_estimators": 279,
+    "max_depth": 3,
+    "learning_rate": 0.02069721473281451,
+    "subsample": 0.7644148053272926,
+    "colsample_bytree": 0.7203513239267079,
+    "min_child_weight": 2,
+    "gamma": 0.11393619775098705,
+    "random_state": 42,
+    "eval_metric": "mlogloss",
+    "tree_method": "hist"
+  },
+  "metricas_teste": {
+    "macro": {
+      "AUC_macro": 0.9145647671550602,
+      "F1_macro": 0.8005050505050505,
+      "Recall_macro": 0.8031958912939513
+    },
+    "por_classe": {
+      "Baixo risco": {
+        "AUC": 0.9826505643697213,
+        "F1": 0.9166666666666666,
+        "Recall": 0.9658536585365853
+      },
+      "Medio risco": {
+        "AUC": 0.8773401121353227,
+        "F1": 0.6666666666666666,
+        "Recall": 0.6176470588235294
+      },
+      "Alto risco": {
+        "AUC": 0.8837036249601362,
+        "F1": 0.8181818181818182,
+        "Recall": 0.8260869565217391
+      }
+    }
+  },
+  "estatisticas_treino": {
+    "total_dias_ativos": {
+      "min": 1.0,
+      "max": 2356.0
+    },
+    "total_apostado": {
+      "min": 0.0,
+      "max": 12123136.8844
+    },
+    "total_perdas": {
+      "min": -29780.0011,
+      "max": 181055.9997
+    },
+    "numero_total_apostas": {
+      "min": 1.0,
+      "max": 2371197.0
+    },
+    "variedade_produtos": {
+      "min": 1.0,
+      "max": 14.0
+    },
+    "media_diaria_apostada": {
+      "min": 0.0,
+      "max": 41562.4
+    },
+    "desvio_padrao_apostado": {
+      "min": 0.0,
+      "max": 65627.37986289151
+    },
+    "taxa_perda_sobre_apostado": {
+      "min": -9.457107949452013,
+      "max": 1.0
+    },
+    "intensidade_apostas_por_dia_ativo": {
+      "min": 0.5,
+      "max": 1512.0833333333333
+    },
+    "tendencia_crescimento_apostado": {
+      "min": -5313.5196000000005,
+      "max": 6780.0
+    },
+    "concentracao_apostas_dias_ativos": {
+      "min": 0.0,
+      "max": 0.9975041570169588
+    },
+    "media_apostas_por_produto": {
+      "min": 1.0,
+      "max": 474239.4
+    }
+  }
+}

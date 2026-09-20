@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+
+# Dados: os .dat.txt do bwin e os CSVs intermediarios nao sao versionados
+# (combined_bwin_dataset.csv tem ~105 MB, acima do limite do GitHub).
+# O PDF e o codebook da base original, distribuido por terceiros.
+# A pasta permanece no repositorio por causa do .gitkeep.
+dados/*.csv
+dados/*.txt
+dados/*.dat
+dados/*.pdf
+!dados/.gitkeep
+
+# Ambiente
+.venv/
+.env
+
+# Sistema
+.DS_Store

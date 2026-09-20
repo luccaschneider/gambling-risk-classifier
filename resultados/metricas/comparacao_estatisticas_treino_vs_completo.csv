@@ -1,0 +1,13 @@
+variavel,min_treino,min_completo,max_treino,max_completo,diff_pct_max
+total_dias_ativos,1.0,1.0,2356.0,2356.0,0.0
+total_apostado,0.0,0.0,12123136.8844,12123136.8844,0.0
+total_perdas,-29780.0011,-35851.11,181055.9997,181055.9997,0.0
+numero_total_apostas,1.0,1.0,2371197.0,2371197.0,0.0
+variedade_produtos,1.0,1.0,14.0,14.0,0.0
+media_diaria_apostada,0.0,0.0,41562.4,41562.4,0.0
+desvio_padrao_apostado,0.0,0.0,65627.37986289151,65627.37986289151,0.0
+taxa_perda_sobre_apostado,-9.457107949452013,-9.457107949452013,1.0,1.0,0.0
+intensidade_apostas_por_dia_ativo,0.5,0.5,1512.0833333333333,1512.0833333333333,0.0
+tendencia_crescimento_apostado,-5313.5196000000005,-5313.5196000000005,6780.0,6780.0,0.0
+concentracao_apostas_dias_ativos,0.0,0.0,0.9975041570169588,0.9975041570169588,0.0
+media_apostas_por_produto,1.0,1.0,474239.4,474239.4,0.0

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Uso e Limitações — Modelo de Classificação de Risco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F2;
+    --card:#FFFFFF;
+    --ink:#161D1A;
+    --ink-soft:#5C6661;
+    --ink-faint:#8A938E;
+    --rule:#DCE0D9;
+    --rule-strong:#C3C9C0;
+    --accent:#2B5F5A;
+    --accent-wash:#E7EFEC;
+    --warn:#AE4132;
+    --warn-wash:#F8E7E3;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 32px;}
+  h1,h2,h3,h4,.ui{font-family:"Archivo",system-ui,sans-serif;}
+  p{margin:0 0 1.05em;} p:last-child{margin-bottom:0;}
+  strong{font-weight:600;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.93em;}
+
+  /* Cabeçalho */
+  .head{padding:76px 0 0;border-bottom:1px solid var(--rule-strong);}
+  .head-eyebrow{
+    font-family:"Archivo",sans-serif;font-size:12px;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:22px;
+  }
+  .head h1{
+    font-size:clamp(32px,5vw,50px);font-weight:700;letter-spacing:-.025em;
+    line-height:1.06;margin:0 0 20px;max-width:18ch;
+  }
+  .head-sub{font-size:19px;color:var(--ink-soft);max-width:62ch;margin-bottom:34px;}
+  .head-meta{display:flex;flex-wrap:wrap;border-top:1px solid var(--rule);}
+  .head-meta div{padding:16px 28px 20px 0;margin-right:28px;border-right:1px solid var(--rule);}
+  .head-meta div:last-child{border-right:none;margin-right:0;}
+  .head-meta dt{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px;
+  }
+  .head-meta dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:500;}
+
+  /* Seções */
+  .bloco{padding:50px 0;border-bottom:1px solid var(--rule);}
+  .bloco > h2{
+    font-size:13px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 26px;
+  }
+  .corpo{max-width:68ch;}
+  .corpo h3{
+    font-size:22px;font-weight:600;letter-spacing:-.014em;
+    margin:34px 0 11px;line-height:1.25;
+  }
+  .corpo h3:first-child{margin-top:0;}
+  .corpo h4{
+    font-size:17px;font-weight:600;letter-spacing:-.008em;
+    margin:26px 0 8px;color:var(--ink);
+  }
+
+  /* Destaques */
+  .aviso{
+    margin:24px 0;padding:19px 23px;background:var(--warn-wash);
+    border-left:3px solid var(--warn);border-radius:0 4px 4px 0;max-width:70ch;font-size:16px;
+  }
+  .aviso-rot{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--warn);margin-bottom:6px;
+  }
+  .nota{
+    margin:24px 0;padding:19px 23px;background:var(--accent-wash);
+    border-left:3px solid var(--accent);border-radius:0 4px 4px 0;max-width:70ch;font-size:16px;
+  }
+  .nota-rot{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;
+  }
+
+  /* É / não é */
+  .par{
+    display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:6px;
+  }
+  .par-card{
+    background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:24px 26px;
+  }
+  .par-card.neg{border-top:3px solid var(--warn);}
+  .par-card.pos{border-top:3px solid var(--accent);}
+  .par-card h3{font-size:19px;margin:0 0 14px;}
+  .par-card p{font-size:16px;margin-bottom:.85em;}
+
+  /* Tabelas */
+  .tabela-env{
+    overflow-x:auto;margin:18px 0;border:1px solid var(--rule);
+    border-radius:5px;background:var(--card);
+  }
+  table{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",monospace;font-size:13.5px;}
+  th{
+    font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);
+    text-align:right;padding:11px 14px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;
+  }
+  th:first-child{text-align:left;}
+  td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap;}
+  td:first-child{text-align:left;}
+  td.txt{text-align:left;font-family:"Source Serif 4",serif;font-size:15.5px;white-space:normal;}
+  tbody tr:last-child td{border-bottom:none;}
+  .alto{color:var(--warn);font-weight:600;}
+
+  /* Modos de aplicação */
+  .modo{
+    background:var(--card);border:1px solid var(--rule);border-radius:6px;
+    padding:24px 28px;margin-bottom:18px;
+  }
+  .modo-selo{
+    font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:3px;
+    background:#EDF0EC;color:var(--ink-soft);display:inline-block;margin-bottom:12px;
+  }
+  .modo-selo.rec{background:var(--accent-wash);color:var(--accent);}
+  .modo h3{margin-top:0;}
+
+  /* Limitações numeradas */
+  .lims{counter-reset:lim;max-width:70ch;}
+  .lim{
+    display:grid;grid-template-columns:34px 1fr;gap:16px;
+    padding:24px 0;border-bottom:1px solid var(--rule);
+  }
+  .lim:last-child{border-bottom:none;}
+  .lim::before{
+    counter-increment:lim;content:counter(lim,decimal-leading-zero);
+    font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+    color:var(--warn);padding-top:5px;
+  }
+  .lim h4{margin:0 0 7px;font-size:18px;}
+  .lim p{font-size:16.5px;color:var(--ink-soft);}
+
+  /* Éticas */
+  .etica{
+    padding:22px 0;border-bottom:1px solid var(--rule);max-width:70ch;
+  }
+  .etica:last-child{border-bottom:none;}
+  .etica h4{margin:0 0 7px;}
+  .etica p{color:var(--ink-soft);font-size:16.5px;}
+
+  /* Referências */
+  .ref{
+    font-size:16px;max-width:72ch;padding-left:2em;text-indent:-2em;margin-bottom:1em;
+  }
+
+  footer{
+    padding:40px 0 70px;font-family:"Archivo",sans-serif;font-size:12.5px;
+    color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  }
+
+  @media (max-width:720px){
+    body{font-size:16px;}
+    .wrap{padding:0 20px;}
+    .head{padding-top:48px;}
+    .head-meta div{border-right:none;padding-right:0;margin-right:0;padding-bottom:12px;}
+    .par{grid-template-columns:1fr;}
+  }
+  @media print{
+    body{background:#fff;font-size:10.5pt;line-height:1.5;}
+    .wrap{max-width:100%;padding:0;}
+    .bloco{padding:22px 0;break-inside:auto;}
+    .par-card,.modo,.aviso,.nota,.lim{break-inside:avoid;}
+    .corpo h3,.corpo h4{break-after:avoid;}
+    .head{padding-top:0;}
+    footer{padding:20px 0 0;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="wrap">
+    <div class="head-eyebrow">Documento de referência</div>
+    <h1>Guia de uso e limitações</h1>
+    <p class="head-sub">Alcance, restrições e cuidados na aplicação do modelo de classificação de risco comportamental em plataformas de apostas online. Leitura recomendada antes de qualquer uso prático.</p>
+    <dl class="head-meta">
+      <div><dt>Modelo</dt><dd>XGBoost ajustado</dd></div>
+      <div><dt>Variáveis</dt><dd>12 comportamentais</dd></div>
+      <div><dt>AUC macro</dt><dd>0,917 ± 0,010</dd></div>
+      <div><dt>Base de treino</dt><dd>bwin, 2005–2007</dd></div>
+    </dl>
+  </div>
+</header>
+
+<!-- O QUE É / NÃO É -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Alcance do modelo</h2>
+    <div class="par">
+      <div class="par-card pos">
+        <h3>O que este modelo é</h3>
+        <p>Um classificador que atribui a apostadores um entre três níveis de risco — baixo, médio ou alto — a partir de doze variáveis comportamentais derivadas do histórico de apostas.</p>
+        <p>Foi desenvolvido como prova de conceito acadêmica, treinado sobre dados públicos e validado por métricas convencionais de aprendizado supervisionado. Alcançou AUC macro de 0,917 em validação cruzada de dez divisões, desempenho superior ao reportado pelos estudos revisados na área, que ficaram entre 0,60 e 0,79.</p>
+      </div>
+      <div class="par-card neg">
+        <h3>O que este modelo não é</h3>
+        <p><strong>Não é um instrumento diagnóstico.</strong> A classificação indica padrão comportamental compatível com risco, não transtorno do jogo. O diagnóstico é ato clínico.</p>
+        <p><strong>Não é um produto pronto para produção.</strong> Exige as adaptações descritas neste documento antes de qualquer aplicação sobre usuários reais.</p>
+        <p><strong>Não substitui os mecanismos regulatórios de jogo responsável.</strong> Complementa-os, adicionando detecção que não depende da iniciativa do usuário.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORIGEM -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Origem dos dados de treino</h2>
+    <div class="corpo">
+      <p>O modelo foi treinado sobre a base disponibilizada pelo Transparency Project, da Division on Addiction do Cambridge Health Alliance, hospital de ensino da Harvard Medical School. São registros reais de 4.113 apostadores da operadora bwin, coletados entre 2005 e 2007.</p>
+      <p>A classificação de alto risco corresponde à marcação efetuada pelo programa de jogo responsável da própria operadora. As classes de baixo e médio risco resultam de um escore composto aplicado sobre quatro variáveis comportamentais, com corte na mediana.</p>
+      <p>Essa distinção de origem entre as classes tem consequência direta no desempenho, tratada adiante na seção de limitações.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSFERÊNCIA -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>A limitação central: transferência entre populações</h2>
+    <div class="corpo">
+      <p>Esta é a restrição mais importante do documento, e a que gera mais mal-entendido.</p>
+
+      <h3>Por que valores absolutos não transferem</h3>
+      <p>O modelo não aprendeu que determinado patamar monetário indica risco. Aprendeu a posição relativa de cada usuário dentro da população específica em que foi treinado.</p>
+      <p>Na base bwin, metade dos apostadores movimentou menos de 1.416 unidades monetárias em todo o histórico. Um usuário com 20 mil estava no quartil superior, e o modelo tratou esse patamar como sinal relevante.</p>
+      <p>Uma plataforma cuja base tenha perfil de movimentação diferente produzirá classificações sistematicamente deslocadas ao enviar valores absolutos. Se o apostador mediano dessa plataforma movimenta o equivalente a 20 mil, todos eles entrarão no modelo na faixa que a bwin considerava atípica — e uma parcela grande da base será classificada em risco elevado sem que isso reflita comportamento problemático.</p>
+
+      <h3>A conversão de moeda não resolve</h3>
+      <p>Converter valores pela cotação ajusta a unidade, não a distribuição. O problema não é que os números estejam em outra moeda; é que ocupam outra posição na curva.</p>
+      <p>Há ainda o fator temporal. Entre 2005 e hoje mudaram a renda média, os padrões de consumo e o próprio produto — a bwin daquele período era navegador, depósito por cartão e aposta antes do evento, enquanto plataformas atuais operam por aplicativo, com transferência instantânea e aposta durante a partida. A frequência de apostas por dia ativo tem outra ordem de grandeza.</p>
+
+      <h3>A assimetria agrava o problema</h3>
+      <p>As variáveis monetárias e de contagem apresentam cauda longa à direita:</p>
+    </div>
+
+    <div class="tabela-env" style="max-width:68ch;">
+      <table>
+        <thead><tr><th>Variável</th><th>Mediana</th><th>Média</th><th>Razão</th></tr></thead>
+        <tbody>
+          <tr><td>total_apostado</td><td>1.416,01</td><td>66.016,88</td><td class="alto">46,6×</td></tr>
+          <tr><td>total_perdas</td><td>143,03</td><td>3.130,16</td><td class="alto">21,9×</td></tr>
+          <tr><td>numero_total_apostas</td><td>725</td><td>10.729,89</td><td class="alto">14,8×</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="corpo">
+      <p>Em distribuições assim, pequenas diferenças de escala entre populações deslocam uma fração desproporcional dos usuários para faixas incorretas. Quanto mais longa a cauda, mais sensível o modelo a diferenças de calibração.</p>
+
+      <h3>A mitigação recomendada</h3>
+      <p>Converter cada variável em percentil dentro da própria população antes de submetê-la ao modelo, em vez de enviar valores absolutos.</p>
+      <p>Um usuário no percentil 85 de valor apostado entre os clientes da operadora seria comparado a quem ocupava o percentil 85 na bwin. A régua passa a ser relativa a cada base, e o modelo volta a operar sobre a informação que efetivamente aprendeu.</p>
+      <p>Essa é a mesma lógica adotada na construção do escore de intensidade durante o desenvolvimento, quando quatro variáveis de escalas incompatíveis precisaram ser combinadas.</p>
+
+      <div class="aviso">
+        <div class="aviso-rot">Ressalva</div>
+        <p>A mitigação reduz o problema, mas não o elimina. Ela pressupõe que o formato da distribuição seja comparável entre as duas populações — suposição razoável, porém não verificada.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODOS -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Dois modos de aplicação</h2>
+
+    <div class="modo">
+      <span class="modo-selo">Modo 1</span>
+      <h3>Como referência</h3>
+      <p>Utilizar o modelo tal como distribuído, com normalização por percentil sobre a base local.</p>
+      <p>Adequado para exploração inicial, prova de conceito ou comparação metodológica. O desempenho real será inferior ao reportado, em medida que depende de quão distinta seja a população.</p>
+    </div>
+
+    <div class="modo">
+      <span class="modo-selo rec">Modo 2 · Recomendado</span>
+      <h3>Como ponto de partida para retreinamento</h3>
+      <p>Utilizar o pipeline, as definições de variáveis e a metodologia, alimentando com dados próprios e reexecutando o ajuste de hiperparâmetros.</p>
+      <p>É o modo recomendado para qualquer aplicação operacional. Permite ainda incorporar variáveis ausentes na base bwin — duração de sessão, depósitos por sessão e esgotamento de saldo são indicadores apontados pela literatura que a base original não registra, e cuja inclusão tenderia a melhorar o desempenho.</p>
+    </div>
+
+    <div class="corpo">
+      <div class="nota">
+        <div class="nota-rot">Sobre a contribuição do trabalho</div>
+        <p>A contribuição principal está na metodologia, não no arquivo do modelo. O classificador serializado é a instância de referência que demonstra a viabilidade da abordagem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPORTAMENTO -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Comportamento em situações específicas</h2>
+    <div class="corpo">
+      <h3>Valores fora da faixa de treino</h3>
+      <p>O modelo é baseado em árvores de decisão e não extrapola linearmente. Entradas acima do máximo observado no treinamento saturam na predição da folha mais extrema.</p>
+      <p>A predição permanece válida, mas não diferencia graus além do limite conhecido: um usuário com movimentação dez vezes superior ao máximo da base recebe a mesma probabilidade de quem está no topo da faixa conhecida. A função de predição sinaliza esses casos em sua lista de avisos.</p>
+
+      <h3>Valores ausentes</h3>
+      <p>O pipeline substitui ausências pela mediana do treino, sem emitir aviso próprio. Uma predição com três das doze variáveis ausentes retorna com aparência de confiabilidade idêntica a uma predição completa.</p>
+      <p>A função <span class="mono">prever_risco</span> incluída no projeto verifica a presença das doze variáveis e interrompe a execução com erro explícito quando alguma falta. Implementações que acessem o pipeline diretamente devem replicar essa verificação.</p>
+
+      <h3>Usuários com histórico mínimo</h3>
+      <p>Três variáveis são estatisticamente indefinidas para quem tem um único dia ativo — desvio padrão, tendência de crescimento e concentração. Na base de treino, esses casos foram preenchidos com zero, o que corresponde a 6% dos usuários.</p>
+      <p>Classificações de usuários muito recentes carregam, portanto, menos informação que o modelo espera. Convém tratar esses casos com cautela adicional.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LIMITAÇÕES -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Limitações reconhecidas</h2>
+    <div class="lims">
+
+      <div class="lim">
+        <div>
+          <h4>Desempenho inferior na classe de médio risco</h4>
+          <p>O recall dessa classe é de 0,609, contra 0,959 no baixo risco e 0,828 no alto. É também a classe de maior instabilidade entre divisões da validação cruzada.</p>
+          <p>A causa é metodológica. Enquanto o alto risco corresponde a um evento concreto — a marcação pela operadora —, a fronteira entre baixo e médio resulta de um corte estatístico em distribuição contínua. Usuários imediatamente acima e abaixo do limiar são comportamentalmente quase indistinguíveis. A análise de interpretabilidade confirmou essa natureza: a relação entre as variáveis preditoras e essa classe é não monotônica, com valores extremos em ambas as direções afastando da classe e apenas a região intermediária aproximando.</p>
+        </div>
+      </div>
+
+      <div class="lim">
+        <div>
+          <h4>Erro assimétrico por decisão de projeto</h4>
+          <p>Quando erra, o modelo superestima a severidade. Entre os casos reais de médio risco, 37,7% são classificados como alto risco, enquanto o erro inverso é raro.</p>
+          <p>Técnicas de balanceamento foram testadas e reduziram esse desvio em cerca de treze pontos percentuais, mas ao custo de onze a treze pontos no recall da classe de alto risco. O modelo foi mantido sem balanceamento por decisão fundamentada: no contexto de jogo responsável, aplicar intervenção mais restritiva que o necessário causa transtorno, enquanto aplicar intervenção insuficiente compromete a proteção.</p>
+          <p>Quem adotar o modelo em outro contexto deve avaliar se essa assimetria permanece adequada. Se o custo de falsos positivos for elevado — por exemplo, se a intervenção implicar suspensão prolongada —, a ponderação de classes pode ser preferível.</p>
+        </div>
+      </div>
+
+      <div class="lim">
+        <div>
+          <h4>Ausência de variáveis relevantes</h4>
+          <p>A base bwin não registra duração de sessão, depósitos por sessão nem esgotamento de saldo. São indicadores apontados pela literatura como relevantes para identificação de comportamento compulsivo, ausentes do modelo por indisponibilidade na fonte.</p>
+          <p>A tentativa de recuperação de perdas, um dos marcadores mais citados, está representada apenas de forma indireta pelo resultado líquido acumulado e pela taxa de perda — indicadores que não distinguem quem perdeu de quem perseguiu perdas.</p>
+        </div>
+      </div>
+
+      <div class="lim">
+        <div>
+          <h4>Variável de baixa estabilidade</h4>
+          <p><span class="mono">tendencia_crescimento_apostado</span> apresenta distribuição concentrada próxima de zero com caudas que alcançam milhares em ambas as direções. Para usuários com poucos dias ativos muito espaçados, a inclinação da regressão é altamente sensível a observações isoladas.</p>
+          <p>É a variável de menor importância no modelo final, e essa instabilidade explica parte do resultado.</p>
+        </div>
+      </div>
+
+      <div class="lim">
+        <div>
+          <h4>Base histórica</h4>
+          <p>Os dados têm quase duas décadas. Padrões de comportamento, produtos ofertados e dinâmica de uso mudaram substancialmente desde então. A validade dos padrões aprendidos em contextos contemporâneos não foi verificada.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ÉTICA -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Considerações éticas</h2>
+
+    <div class="etica">
+      <h4>A classificação não é diagnóstico</h4>
+      <p>Um usuário classificado como alto risco apresenta padrão comportamental compatível com risco. Não há afirmação sobre condição clínica, e a comunicação com o usuário deve refletir essa distinção.</p>
+    </div>
+
+    <div class="etica">
+      <h4>Intervenções exigem proporcionalidade e transparência</h4>
+      <p>Medidas restritivas aplicadas automaticamente devem ser proporcionais ao risco identificado e comunicadas de forma clara, com possibilidade de contestação. Suspensões injustificadas têm efeito contrário ao pretendido: o usuário tende a migrar para plataformas sem qualquer mecanismo de proteção, ampliando a exposição que o sistema buscava reduzir.</p>
+    </div>
+
+    <div class="etica">
+      <h4>Auditabilidade</h4>
+      <p>O modelo admite análise de interpretabilidade por SHAP, que permite identificar a contribuição de cada variável em predições individuais. Recomenda-se manter registro dessas explicações para decisões que resultem em restrição de acesso.</p>
+    </div>
+
+    <div class="etica">
+      <h4>Proteção de dados</h4>
+      <p>Dados comportamentais de apostas são sensíveis. Qualquer aplicação sobre usuários identificáveis deve observar a legislação aplicável — no Brasil, a Lei Geral de Proteção de Dados — com atenção à base legal do tratamento, à minimização dos dados coletados e aos direitos do titular.</p>
+    </div>
+
+    <div class="etica">
+      <h4>Viés detectado e removido durante o desenvolvimento</h4>
+      <p>Uma versão inicial do modelo incluía variáveis demográficas e apresentava desempenho superior. A análise de interpretabilidade revelou que país e idioma dominavam a predição de alto risco — o modelo havia aprendido onde a operadora fiscalizava com mais rigor, não quem apresentava comportamento problemático.</p>
+      <p>As variáveis demográficas foram removidas, ao custo de dois a quatro pontos percentuais de desempenho. Qualquer retreinamento deve verificar a reincidência desse padrão, que se manifesta como desempenho elevado sustentado por variáveis sem relação causal com o fenômeno.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TÉCNICO -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Requisitos técnicos</h2>
+    <div class="corpo">
+      <p>Python 3.12 ou superior, com as dependências listadas em <span class="mono">requirements.txt</span>. O modelo serializado e seus metadados devem permanecer na pasta <span class="mono">modelo/</span>, em posição relativa ao script que os carrega.</p>
+      <p>O acesso recomendado é pela função <span class="mono">prever_risco</span> do módulo <span class="mono">predicao.py</span>, que implementa as verificações descritas neste documento. O carregamento direto do arquivo serializado contorna essas verificações.</p>
+    </div>
+  </div>
+</section>
+
+<!-- REFERÊNCIAS -->
+<section class="bloco">
+  <div class="wrap">
+    <h2>Referências e documentos relacionados</h2>
+    <div class="corpo">
+      <p class="ref">GRAY, Heather M.; LAPLANTE, Debi A.; SHAFFER, Howard J. Behavioral characteristics of Internet gamblers who trigger corporate responsible gambling interventions. <strong>Psychology of Addictive Behaviors</strong>, v. 26, n. 3, p. 527-535, 2012.</p>
+      <p>Dados disponíveis publicamente pelo Transparency Project, Division on Addiction, Cambridge Health Alliance — hospital de ensino da Harvard Medical School.</p>
+
+      <h3>Documentos complementares</h3>
+      <p><span class="mono">DICIONARIO_VARIAVEIS</span> — especificação das doze variáveis de entrada, com definição operacional, regra de cálculo e faixas observadas.</p>
+      <p><span class="mono">relatorio_experimentos_modelo</span> — registro cronológico das quatorze etapas de desenvolvimento, com resultados e justificativa de cada decisão.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:14px;padding:0 32px;">
+    <span>Guia de uso e limitações — modelo de classificação de risco</span>
+    <span class="mono">XGBoost · 12 variáveis comportamentais</span>
+  </div>
+</footer>
+
+</body>
+</html>

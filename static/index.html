@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de risco comportamental</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Paleta
+   Verde, ambar e vermelho sao RESERVADOS para o nivel de risco. A interface
+   usa cinza-azulado escuro + acento frio (azul), nunca verde.
+   Passos validados para superficie escura (#161d26): banda de luminosidade,
+   croma, separacao sob daltonismo (dE 8.1 deutan) e contraste >= 3:1.
+--------------------------------------------------------------------------- */
+:root {
+  --fundo:          #0d1219;
+  --superficie:     #161d26;
+  --superficie-alta:#1b2531;
+  --campo:          #111823;
+  --borda:          #232d3a;
+  --borda-forte:    #303d4e;
+  --texto:          #e6ecf3;
+  --texto-2:        #93a2b4;
+  --texto-3:        #6a7889;
+  --acento:         #4090e8;
+  --acento-fraco:   rgba(64, 144, 232, 0.12);
+
+  --risco-baixo:    #30a675;
+  --risco-medio:    #c4811c;
+  --risco-alto:     #d2382d;
+
+  /* raio por hierarquia: blocos > controles > elementos menores */
+  --r-bloco: 20px;
+  --r-campo: 12px;
+  --r-mini:  6px;
+
+  --sombra-card: 0 1px 2px rgba(0,0,0,.28), 0 8px 24px rgba(0,0,0,.22);
+  --transicao: 180ms cubic-bezier(.4,0,.2,1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.envoltorio { max-width: 1320px; margin: 0 auto; padding: 24px 24px 56px; }
+
+/* ----------------------------- cabecalho ----------------------------- */
+.cabecalho {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.cabecalho h1 {
+  margin: 0 0 8px; font-size: 34px; font-weight: 650;
+  letter-spacing: -.025em; line-height: 1.1;
+}
+.cabecalho p { margin: 0; color: var(--texto-2); font-size: 13.5px; max-width: 74ch; }
+@media (max-width: 560px) { .cabecalho h1 { font-size: 27px; } }
+
+.status {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 13px; border-radius: var(--r-mini);
+  background: var(--superficie); border: 1px solid var(--borda);
+  font-size: 12px; color: var(--texto-2); white-space: nowrap;
+}
+.status .ponto {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--texto-3); flex: none;
+}
+.status.ok .ponto    { background: var(--acento); }
+.status.falha .ponto { background: var(--risco-alto); }
+
+/* ------------------------------ layout ------------------------------- */
+.painel {
+  display: grid; grid-template-columns: minmax(0,1fr) 396px;
+  gap: 20px; align-items: start;
+}
+@media (max-width: 1040px) {
+  .painel { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------ cartoes ------------------------------ */
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--r-bloco);
+  box-shadow: var(--sombra-card);
+}
+.cartao + .cartao { margin-top: 16px; }
+.cartao-cabeca {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 16px 20px 0;
+}
+.cartao-titulo {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--texto-2); margin: 0;
+}
+.cartao-nota { font-size: 11px; color: var(--texto-3); }
+.cartao-corpo { padding: 14px 20px 20px; }
+
+/* ---------------------------- perfis ---------------------------- */
+.perfis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 560px) { .perfis { grid-template-columns: 1fr; } }
+
+.perfil {
+  display: flex; flex-direction: column; gap: 3px; text-align: left;
+  padding: 11px 14px; cursor: pointer;
+  background: var(--campo); color: var(--texto);
+  border: 1px solid var(--borda); border-left: 3px solid var(--nivel, var(--borda-forte));
+  border-radius: var(--r-campo);
+  font: inherit; font-size: 13px;
+  transition: background var(--transicao), border-color var(--transicao), transform var(--transicao);
+}
+.perfil:hover { background: var(--superficie-alta); border-color: var(--borda-forte); border-left-color: var(--nivel); }
+.perfil:active { transform: translateY(1px); }
+.perfil:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.perfil .rotulo { font-weight: 500; }
+.perfil .id { font-size: 11px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.perfil[aria-pressed="true"] { border-color: var(--nivel); background: var(--superficie-alta); }
+
+/* ----------------------------- campos ----------------------------- */
+.grade-campos { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 13px 16px; }
+@media (max-width: 680px) { .grade-campos { grid-template-columns: 1fr; } }
+
+.campo { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.campo label { font-size: 12px; color: var(--texto-2); }
+.campo input {
+  width: 100%; padding: 9px 12px;
+  background: var(--campo); color: var(--texto);
+  border: 1px solid var(--borda); border-radius: var(--r-campo);
+  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
+  transition: border-color var(--transicao), background var(--transicao), box-shadow var(--transicao);
+}
+.campo input:hover { border-color: var(--borda-forte); }
+.campo input:focus {
+  outline: none; border-color: var(--acento);
+  background: var(--superficie-alta); box-shadow: 0 0 0 3px var(--acento-fraco);
+}
+.campo .dica { font-size: 11px; color: var(--texto-3); line-height: 1.45; }
+
+/* ----------------------------- acoes ----------------------------- */
+.acoes { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 16px; }
+.botao {
+  padding: 11px 22px; cursor: pointer;
+  background: var(--acento); color: #08111d;
+  border: 1px solid var(--acento); border-radius: var(--r-campo);
+  font: inherit; font-size: 13px; font-weight: 600;
+  transition: filter var(--transicao), transform var(--transicao);
+}
+.botao:hover { filter: brightness(1.08); }
+.botao:active { transform: translateY(1px); }
+.botao:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+.botao[disabled] { opacity: .55; cursor: progress; }
+
+.botao-secundario {
+  background: transparent; color: var(--texto-2);
+  border: 1px solid var(--borda); font-weight: 500;
+}
+.botao-secundario:hover { color: var(--texto); border-color: var(--borda-forte); filter: none; }
+
+/* --------------------------- resultado --------------------------- */
+.coluna-resultado { position: sticky; top: 24px; }
+@media (max-width: 1040px) { .coluna-resultado { position: static; } }
+
+.vazio { padding: 40px 24px; text-align: center; color: var(--texto-3); font-size: 13px; }
+
+.medidor { padding: 6px 20px 0; }
+.medidor svg { display: block; width: 100%; height: auto; }
+
+.trilha-zona { transition: opacity var(--transicao); }
+/* a zona ativa fica em cheio; as outras recuam sem sumir, para a escala
+   inteira continuar legivel */
+.zona-apagada { opacity: .55; }
+
+.marcador {
+  transform-box: view-box; transform-origin: 170px 170px;
+  transform: rotate(-90deg);
+  transition: transform 900ms cubic-bezier(.22,1,.36,1);
+}
+
+.medidor-valor {
+  font-size: 46px; font-weight: 650; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.medidor-legenda {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
+}
+
+.zonas-rotulos {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: 0 20px; margin-top: -4px;
+  font-size: 11px; color: var(--texto-3); text-align: center;
+}
+.zonas-rotulos span.ativa { color: var(--texto); font-weight: 600; }
+
+.veredito { padding: 12px 20px 4px; text-align: center; }
+.veredito .classe { font-size: 24px; font-weight: 650; letter-spacing: -.015em; }
+.veredito .indice {
+  margin-top: 3px; font-size: 11px; color: var(--texto-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.probabilidades { padding: 16px 20px 4px; display: flex; flex-direction: column; gap: 9px; }
+.prob { display: grid; grid-template-columns: 82px minmax(0,1fr) 46px; align-items: center; gap: 10px; }
+.prob .nome { font-size: 12px; color: var(--texto-2); }
+.prob .trilha { height: 7px; background: var(--campo); border-radius: var(--r-mini); overflow: hidden; }
+.prob .barra {
+  height: 100%; width: 0; border-radius: var(--r-mini);
+  transition: width 760ms cubic-bezier(.22,1,.36,1);
+}
+.prob .valor {
+  font-size: 12px; color: var(--texto); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.intervencao { margin: 16px 20px 0; padding: 12px 14px;
+  background: var(--campo); border: 1px solid var(--borda);
+  border-left: 3px solid var(--nivel, var(--acento));
+  border-radius: var(--r-campo); }
+.intervencao .rotulo {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--texto-3);
+}
+.intervencao .texto { font-size: 12.5px; color: var(--texto); margin-top: 4px; }
+
+.avisos { margin: 12px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+.aviso {
+  padding: 10px 13px; background: var(--campo);
+  border: 1px solid var(--borda); border-left: 3px solid var(--risco-medio);
+  border-radius: var(--r-campo); font-size: 11.5px; color: var(--texto-2); line-height: 1.5;
+}
+.avisos-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--texto-3); }
+
+.erro {
+  margin: 0 20px 20px; padding: 13px 15px; background: var(--campo);
+  border: 1px solid var(--borda); border-left: 3px solid var(--risco-alto);
+  border-radius: var(--r-campo); font-size: 12.5px; color: var(--texto); line-height: 1.55;
+}
+.erro .rotulo {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--texto-3); display: block; margin-bottom: 4px;
+}
+
+.surgir { animation: surgir 460ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.rodape { margin-top: 22px; font-size: 11px; color: var(--texto-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, .agulha, .prob .barra { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="envoltorio">
+
+  <header class="cabecalho">
+    <div>
+      <h1>Painel de risco comportamental</h1>
+      <p>O modelo analisa o histórico de apostas de um jogador e classifica o nível de risco de
+         comportamento compulsivo. A cada nível corresponde uma intervenção proporcional, do
+         monitoramento padrão ao encaminhamento para a equipe de jogo responsável.</p>
+    </div>
+    <div class="status" id="status"><span class="ponto"></span><span id="status-texto">verificando modelo…</span></div>
+  </header>
+
+  <div class="painel">
+
+    <!-- ----------------------------- entrada ----------------------------- -->
+    <div>
+      <section class="cartao">
+        <div class="cartao-cabeca">
+          <h2 class="cartao-titulo">Perfis de exemplo</h2>
+          <span class="cartao-nota">usuários reais do dataset</span>
+        </div>
+        <div class="cartao-corpo">
+          <div class="perfis" id="perfis"></div>
+        </div>
+      </section>
+
+      <!-- novalidate: o "step" existe para o incremento das setas, mas valores reais
+           do dataset (274.984777) nao sao multiplos dele e a validacao nativa
+           bloquearia o envio. A validacao de dominio e feita pela API. -->
+      <form id="formulario" autocomplete="off" novalidate>
+        <section class="cartao">
+          <div class="cartao-cabeca"><h2 class="cartao-titulo">Volume e frequência</h2></div>
+          <div class="cartao-corpo"><div class="grade-campos" id="grupo-volume"></div></div>
+        </section>
+
+        <section class="cartao">
+          <div class="cartao-cabeca"><h2 class="cartao-titulo">Valores e perdas</h2></div>
+          <div class="cartao-corpo"><div class="grade-campos" id="grupo-valores"></div></div>
+        </section>
+
+        <section class="cartao">
+          <div class="cartao-cabeca"><h2 class="cartao-titulo">Padrão temporal</h2></div>
+          <div class="cartao-corpo">
+            <div class="grade-campos" id="grupo-temporal"></div>
+            <div class="acoes">
+              <button class="botao" type="submit" id="botao-classificar">Classificar</button>
+              <button class="botao botao-secundario" type="button" id="botao-restaurar">Restaurar medianas</button>
+            </div>
+          </div>
+        </section>
+      </form>
+
+      <p class="rodape">
+        Os valores iniciais são a mediana de cada variável no conjunto de treino. Como cada mediana é
+        calculada de forma independente, esse conjunto não corresponde a um usuário real e pode gerar
+        avisos de coerência.
+      </p>
+    </div>
+
+    <!-- ---------------------------- resultado ---------------------------- -->
+    <aside class="coluna-resultado">
+      <section class="cartao" id="cartao-resultado">
+        <div class="cartao-cabeca">
+          <h2 class="cartao-titulo">Resultado</h2>
+          <span class="cartao-nota" id="resultado-nota"></span>
+        </div>
+        <div id="resultado-conteudo">
+          <p class="vazio">Preencha as variáveis e clique em <strong>Classificar</strong><br>para ver a posição na escala de risco.</p>
+        </div>
+      </section>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ dados */
+const NIVEIS = [
+  { chave: "Baixo risco", nome: "Baixo risco", cor: "var(--risco-baixo)" },
+  { chave: "Medio risco", nome: "Médio risco", cor: "var(--risco-medio)" },
+  { chave: "Alto risco",  nome: "Alto risco",  cor: "var(--risco-alto)"  },
+];
+
+// mediana do conjunto de treino (valor inicial dos campos).
+// As contagens vao arredondadas para inteiro: a mediana crua de
+// numero_total_apostas e 700,5 — a media das duas observacoes centrais, nao uma
+// contagem que algum usuario teve. Escolher 700 ou 701 nao altera a classificacao.
+const MEDIANAS = {
+  total_dias_ativos: 61, total_apostado: 1471.71085, total_perdas: 147.594152,
+  numero_total_apostas: 701, variedade_produtos: 3, media_diaria_apostada: 34.519632,
+  desvio_padrao_apostado: 46.703491, taxa_perda_sobre_apostado: 0.119895,
+  intensidade_apostas_por_dia_ativo: 11.927273, tendencia_crescimento_apostado: -0.000605,
+  concentracao_apostas_dias_ativos: 0.617858, media_apostas_por_produto: 247.071429,
+};
+
+// usuarios reais do dataset, os mais proximos do perfil mediano de cada classe
+const PERFIS = {
+  "Baixo risco": { id: 6605928, valores: {
+    total_dias_ativos: 18, total_apostado: 72.592022, total_perdas: 27.334289,
+    numero_total_apostas: 23, variedade_produtos: 1, media_diaria_apostada: 4.03289,
+    desvio_padrao_apostado: 3.480184, taxa_perda_sobre_apostado: 0.376547,
+    intensidade_apostas_por_dia_ativo: 1.277778, tendencia_crescimento_apostado: 0.025955,
+    concentracao_apostas_dias_ativos: 0.472436, media_apostas_por_produto: 23 } },
+  "Medio risco": { id: 876762, valores: {
+    total_dias_ativos: 44, total_apostado: 533.2827, total_perdas: 63.223,
+    numero_total_apostas: 58, variedade_produtos: 2, media_diaria_apostada: 12.120061,
+    desvio_padrao_apostado: 15.42976, taxa_perda_sobre_apostado: 0.118554,
+    intensidade_apostas_por_dia_ativo: 1.318182, tendencia_crescimento_apostado: 0.006804,
+    concentracao_apostas_dias_ativos: 0.578662, media_apostas_por_produto: 29 } },
+  "Alto risco": { id: 2780351, valores: {
+    total_dias_ativos: 157, total_apostado: 43172.61, total_perdas: 1550.66,
+    numero_total_apostas: 7305, variedade_produtos: 4, media_diaria_apostada: 274.984777,
+    desvio_padrao_apostado: 483.319542, taxa_perda_sobre_apostado: 0.035918,
+    intensidade_apostas_por_dia_ativo: 46.528662, tendencia_crescimento_apostado: -0.483953,
+    concentracao_apostas_dias_ativos: 0.69478, media_apostas_por_produto: 1826.25 } },
+};
+
+const CAMPOS = {
+  volume: [
+    ["total_dias_ativos", "Dias ativos", 1, "Dias distintos com pelo menos uma aposta."],
+    ["numero_total_apostas", "Total de apostas", 1, "Soma das apostas feitas no período."],
+    ["variedade_produtos", "Produtos distintos", 1, "Tipos de produto jogados (esportes, cassino, poker…)."],
+    ["intensidade_apostas_por_dia_ativo", "Apostas por dia ativo", 0.01, "Total de apostas dividido pelos dias ativos."],
+    ["media_apostas_por_produto", "Apostas por produto", 0.01, "Total de apostas dividido pelos produtos distintos."],
+  ],
+  valores: [
+    ["total_apostado", "Total apostado", 0.01, "Soma de todo o valor apostado (Turnover)."],
+    ["total_perdas", "Total de perdas (Hold)", 0.01, "Receita líquida da casa. Negativo se o jogador ganhou no saldo."],
+    ["media_diaria_apostada", "Média diária apostada", 0.01, "Valor médio apostado nos dias com atividade."],
+    ["taxa_perda_sobre_apostado", "Taxa de perda", 0.0001, "Perdas divididas pelo total apostado."],
+  ],
+  temporal: [
+    ["desvio_padrao_apostado", "Desvio padrão diário", 0.01, "Irregularidade do valor apostado de um dia para outro."],
+    ["tendencia_crescimento_apostado", "Tendência de crescimento", 0.0001, "Inclinação da série diária. Positivo = apostas crescentes."],
+    ["concentracao_apostas_dias_ativos", "Concentração (Gini)", 0.0001, "0 = distribuído entre os dias; perto de 1 = concentrado em poucos dias."],
+  ],
+};
+
+const INTEIROS = new Set(["total_dias_ativos", "numero_total_apostas", "variedade_produtos"]);
+
+// Estas tres carregam informacao abaixo da segunda casa: arredonda-las para 2
+// casas muda a classe de parte dos usuarios, entao sao exibidas com 4.
+// O arredondamento e SEMPRE so de exibicao - o valor cheio fica em
+// dataset.exato e e ele que vai para a API.
+const CASAS_EXTRAS = new Set([
+  "taxa_perda_sobre_apostado",
+  "tendencia_crescimento_apostado",
+  "concentracao_apostas_dias_ativos",
+]);
+
+/* ------------------------------------------------------- montagem do form */
+function criarCampo([chave, rotulo, passo, dica]) {
+  const div = document.createElement("div");
+  div.className = "campo";
+  const id = "campo-" + chave;
+  div.innerHTML =
+    `<label for="${id}">${rotulo}</label>` +
+    `<input id="${id}" name="${chave}" type="number" step="${passo}" inputmode="decimal">` +
+    `<span class="dica">${dica}</span>`;
+  return div;
+}
+
+for (const [grupo, lista] of Object.entries(CAMPOS)) {
+  const alvo = document.getElementById("grupo-" + grupo);
+  lista.forEach(def => alvo.appendChild(criarCampo(def)));
+}
+
+function formatarExibicao(chave, valor) {
+  if (INTEIROS.has(chave)) return String(valor);   // contagem: sem decimais
+  return valor.toFixed(CASAS_EXTRAS.has(chave) ? 4 : 2);
+}
+
+function preencher(valores) {
+  for (const [chave, valor] of Object.entries(valores)) {
+    const campo = document.querySelector(`[name="${chave}"]`);
+    if (!campo) continue;
+    campo.dataset.exato = String(valor);              // valor cheio, usado no envio
+    campo.value = formatarExibicao(chave, valor);     // versao arredondada, so na tela
+  }
+}
+
+// o que sai daqui e o valor cheio enquanto o campo nao for editado a mao;
+// assim que o operador digita, o que ele escreveu passa a valer
+function valorParaEnvio(campo) {
+  const exato = campo.dataset.exato;
+  return Number(exato ? exato : campo.value);
+}
+
+/* --------------------------------------------------------- botoes perfil */
+const containerPerfis = document.getElementById("perfis");
+NIVEIS.forEach(nivel => {
+  const perfil = PERFIS[nivel.chave];
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "perfil";
+  botao.style.setProperty("--nivel", nivel.cor);
+  botao.setAttribute("aria-pressed", "false");
+  botao.innerHTML = `<span class="rotulo">${nivel.nome}</span><span class="id">usuário ${perfil.id}</span>`;
+  botao.addEventListener("click", () => {
+    preencher(perfil.valores);
+    document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
+    botao.setAttribute("aria-pressed", "true");
+  });
+  containerPerfis.appendChild(botao);
+});
+
+document.getElementById("botao-restaurar").addEventListener("click", () => {
+  preencher(MEDIANAS);
+  document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
+});
+
+document.querySelectorAll('input[type="number"]').forEach(campo => {
+  campo.addEventListener("input", () => {
+    delete campo.dataset.exato;   // editado a mao: o valor digitado passa a mandar
+    document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
+  });
+});
+
+preencher(MEDIANAS);
+
+/* ------------------------------------------------------------- medidor */
+const CX = 170, CY = 170, RAIO = 126, ESPESSURA = 16, FOLGA = 2.2;
+
+function ponto(angulo, raio) {
+  const rad = (angulo * Math.PI) / 180;
+  return [CX + raio * Math.cos(rad), CY - raio * Math.sin(rad)];
+}
+
+function arco(de, ate) {
+  const [x1, y1] = ponto(de, RAIO);
+  const [x2, y2] = ponto(ate, RAIO);
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${RAIO} ${RAIO} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+// indice continuo 0..1: media das probabilidades ponderada pelo nivel
+function indiceRisco(prob) {
+  return (prob["Medio risco"] ?? 0) * 0.5 + (prob["Alto risco"] ?? 0) * 1;
+}
+
+function svgMedidor(indice, chaveClasse, corClasse) {
+  // 3 zonas de 60 graus, da esquerda (180) para a direita (0)
+  const zonas = NIVEIS.map((nivel, i) => {
+    const inicio = 180 - i * 60 - (i === 0 ? 0 : FOLGA);
+    const fim = 180 - (i + 1) * 60 + (i === 2 ? 0 : FOLGA);
+    const apagada = chaveClasse && nivel.chave !== chaveClasse ? " zona-apagada" : "";
+    return `<path class="trilha-zona${apagada}" d="${arco(inicio, fim)}"
+             stroke="${nivel.cor}" stroke-width="${ESPESSURA}" fill="none" stroke-linecap="butt"></path>`;
+  }).join("");
+
+  // o marcador corre SOBRE o arco, deixando o centro livre para o indice
+  const angulo = (indice - 0.5) * 180;   // -90 = extremo baixo, +90 = extremo alto
+
+  return `
+  <svg viewBox="0 0 340 200" role="img"
+       aria-label="Escala de risco: ${(indice * 100).toFixed(0)} de 100">
+    ${zonas}
+    <g class="marcador" style="transform: rotate(${angulo.toFixed(2)}deg)">
+      <circle cx="${CX}" cy="${CY - RAIO}" r="11" fill="var(--superficie)"></circle>
+      <circle cx="${CX}" cy="${CY - RAIO}" r="7.5" fill="var(--texto)"></circle>
+    </g>
+    <text class="medidor-valor" x="${CX}" y="${CY - 26}" text-anchor="middle"
+          fill="${corClasse}">${(indice * 100).toFixed(0)}</text>
+    <text class="medidor-legenda" x="${CX}" y="${CY - 8}" text-anchor="middle"
+          fill="var(--texto-3)">índice de risco</text>
+  </svg>`;
+}
+
+/* ------------------------------------------------------------ resultado */
+const conteudo = document.getElementById("resultado-conteudo");
+const nota = document.getElementById("resultado-nota");
+
+function escapar(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+function mostrarErro(titulo, mensagem) {
+  nota.textContent = "";
+  conteudo.innerHTML = `<div class="erro surgir"><span class="rotulo">${escapar(titulo)}</span>${escapar(mensagem)}</div>`;
+}
+
+function mostrarResultado(dados) {
+  const nivel = NIVEIS.find(n => n.chave === dados.classe_prevista) ?? NIVEIS[0];
+  const indice = indiceRisco(dados.probabilidades);
+
+  const rotulosZonas = NIVEIS.map(n =>
+    `<span class="${n.chave === nivel.chave ? "ativa" : ""}">${n.nome}</span>`).join("");
+
+  const barras = NIVEIS.map(n => `
+    <div class="prob">
+      <span class="nome">${n.nome}</span>
+      <div class="trilha"><div class="barra" data-alvo="${(dados.probabilidades[n.chave] ?? 0) * 100}"
+           style="background:${n.cor}"></div></div>
+      <span class="valor">${((dados.probabilidades[n.chave] ?? 0) * 100).toFixed(1)}%</span>
+    </div>`).join("");
+
+  const avisos = dados.avisos?.length
+    ? `<div class="avisos">
+         <span class="avisos-titulo">Avisos de validação</span>
+         ${dados.avisos.map(a => `<div class="aviso">${escapar(a)}</div>`).join("")}
+       </div>`
+    : "";
+
+  nota.textContent = new Date().toLocaleTimeString("pt-BR");
+  conteudo.innerHTML = `
+    <div class="surgir">
+      <div class="medidor">${svgMedidor(indice, nivel.chave, nivel.cor)}</div>
+      <div class="zonas-rotulos">${rotulosZonas}</div>
+      <div class="veredito">
+        <div class="classe" style="color:${nivel.cor}">${nivel.nome}</div>
+        <div class="indice">média das probabilidades ponderada por nível (0 a 100)</div>
+      </div>
+      <div class="probabilidades">${barras}</div>
+      <div class="intervencao" style="--nivel:${nivel.cor}">
+        <span class="rotulo">Intervenção recomendada</span>
+        <div class="texto">${escapar(dados.intervencao)}</div>
+      </div>
+      ${avisos}
+    </div>`;
+
+  // barras crescem a partir do zero
+  requestAnimationFrame(() => {
+    conteudo.querySelectorAll(".barra").forEach(barra => {
+      barra.style.width = barra.dataset.alvo + "%";
+    });
+  });
+}
+
+/* --------------------------------------------------------------- rede */
+function mensagemDeErro(detail) {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail.map(item => {
+      const campo = Array.isArray(item.loc) ? item.loc.slice(1).join(".") : "campo";
+      return `${campo}: ${item.msg}`;
+    }).join(" · ");
+  }
+  return "Resposta de erro não reconhecida.";
+}
+
+async function verificarSaude() {
+  const caixa = document.getElementById("status");
+  const texto = document.getElementById("status-texto");
+  try {
+    const resposta = await fetch("/saude");
+    const dados = await resposta.json();
+    if (resposta.ok && dados.modelo_carregado) {
+      caixa.classList.add("ok");
+      texto.textContent = `modelo carregado — ${dados.n_variaveis_esperadas} variáveis`;
+    } else {
+      caixa.classList.add("falha");
+      texto.textContent = "modelo indisponível";
+    }
+  } catch {
+    caixa.classList.add("falha");
+    texto.textContent = "API fora do ar";
+  }
+}
+
+const botao = document.getElementById("botao-classificar");
+
+document.getElementById("formulario").addEventListener("submit", async evento => {
+  evento.preventDefault();
+
+  const corpo = {};
+  for (const campo of document.querySelectorAll('input[type="number"]')) {
+    if (campo.value.trim() === "") {
+      mostrarErro("Campo vazio", `Preencha o campo "${campo.previousElementSibling.textContent}".`);
+      campo.focus();
+      return;
+    }
+    corpo[campo.name] = valorParaEnvio(campo);
+  }
+
+  botao.disabled = true;
+  botao.textContent = "Classificando…";
+  try {
+    const resposta = await fetch("/classificar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+    });
+    const dados = await resposta.json();
+    if (!resposta.ok) {
+      mostrarErro(`Entrada rejeitada (HTTP ${resposta.status})`, mensagemDeErro(dados.detail));
+    } else {
+      mostrarResultado(dados);
+    }
+  } catch (erro) {
+    mostrarErro("Falha de conexão", "Não foi possível falar com a API. Verifique se o servidor está no ar.");
+  } finally {
+    botao.disabled = false;
+    botao.textContent = "Classificar";
+  }
+});
+
+verificarSaude();
+</script>
+</body>
+</html>
