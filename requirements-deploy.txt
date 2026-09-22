@@ -1,0 +1,20 @@
+# Dependencias de producao da API (src/api.py + src/predicao.py).
+# Nao inclui matplotlib, shap, imbalanced-learn nem streamlit: esses so
+# sao usados pelos experimentos e pela interface alternativa, que nao
+# sobem no deploy.
+#
+# As versoes estao fixadas com == de proposito. O modelo em
+# modelo/xgboost_tunado_comportamental.joblib foi serializado com estas
+# versoes exatas de scikit-learn e xgboost; carregar o arquivo com versoes
+# diferentes pode falhar ou, pior, alterar silenciosamente as predicoes.
+# Conferidas com pip freeze no ambiente de treino.
+
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+pydantic==2.13.5
+
+joblib==1.5.3
+numpy==2.4.4
+pandas==3.0.3
+scikit-learn==1.8.0
+xgboost==3.2.0
