@@ -1,5 +1,7 @@
 # Classificação de risco comportamental em apostas online
 
+**[Demonstração ao vivo](https://gambling-risk-classifier.onrender.com)** — a primeira visita pode levar até um minuto para carregar, porque o serviço gratuito hiberna após um período de inatividade.
+
 Modelo de aprendizado de máquina que classifica apostadores em três níveis de risco de comportamento compulsivo — baixo, médio e alto — a partir de doze variáveis comportamentais derivadas do histórico de apostas.
 
 A cada nível corresponde uma intervenção proporcional, do monitoramento padrão ao encaminhamento para equipe de jogo responsável.
