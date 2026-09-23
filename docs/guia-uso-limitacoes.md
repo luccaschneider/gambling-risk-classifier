@@ -188,6 +188,6 @@ Dados disponíveis publicamente pelo Transparency Project, Division on Addiction
 
 ## Documentos relacionados
 
-`DICIONARIO_VARIAVEIS.md` — especificação das doze variáveis de entrada, com definição operacional, regra de cálculo e faixas observadas.
+`dicionario-variaveis.md` — especificação das doze variáveis de entrada, com definição operacional, regra de cálculo e faixas observadas.
 
-`relatorio_experimentos_modelo.html` — registro cronológico das quatorze etapas de desenvolvimento, com resultados e justificativa de cada decisão.
+`relatorio-experimentos.html` — registro cronológico das quatorze etapas de desenvolvimento, com resultados e justificativa de cada decisão.
