@@ -267,12 +267,8 @@ body {
 
 .rodape { margin-top: 22px; font-size: 11px; color: var(--texto-3); }
 
-/* registro de decisoes: largura total, abaixo das duas colunas */
+/* registro de classificacao: largura total, abaixo das duas colunas */
 .registro-cartao { margin-top: 20px; }
-.registro-nota {
-  margin: 0 0 14px; font-size: 11.5px; color: var(--texto-3);
-  line-height: 1.6; max-width: 96ch;
-}
 .registro-linha {
   display: grid; grid-template-columns: 74px 128px 62px 1fr;
   align-items: center; gap: 12px;
@@ -385,19 +381,13 @@ body {
 
   </div>
 
-  <!-- -------------------------- registro de decisoes -------------------------- -->
+  <!-- ------------------------ registro de classificacao ------------------------ -->
   <section class="cartao registro-cartao">
     <div class="cartao-cabeca">
-      <h2 class="cartao-titulo">Registro de decisões</h2>
+      <h2 class="cartao-titulo">Registro de Classificação</h2>
       <span class="cartao-nota" id="registro-total"></span>
     </div>
     <div class="cartao-corpo">
-      <p class="registro-nota">
-        Cada classificação é registrada com data, variáveis de entrada, resultado e ação recomendada,
-        permitindo auditoria das decisões. Nesta demonstração o registro é temporário e é apagado
-        quando o servidor reinicia ou hiberna; em uso real, seria gravado no banco de dados da
-        operadora. O registro é compartilhado entre todos os visitantes da demonstração.
-      </p>
       <div id="registro-lista"></div>
     </div>
   </section>
