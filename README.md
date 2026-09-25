@@ -10,7 +10,7 @@ A cada nível corresponde uma intervenção proporcional, do monitoramento padr�
 |---|---|
 | **Modelo** | XGBoost com hiperparâmetros ajustados |
 | **Variáveis** | 12 comportamentais, sem dados demográficos |
-| **AUC macro** | 0,917 ± 0,010 (validação cruzada, 10 divisões) |
+| **AUC macro** | 0,915 no teste retido · 0,917 ± 0,010 em validação cruzada (10 divisões) |
 | **Recall macro** | 0,799 |
 | **Base de treino** | bwin — Gray, LaPlante e Shaffer (2012), 4.113 apostadores |
 
@@ -191,6 +191,8 @@ Validação cruzada estratificada em dez divisões:
 | Baixo risco | 0,984 | 0,914 | 0,959 |
 | Médio risco | 0,881 | 0,655 | 0,609 |
 | Alto risco | 0,886 | 0,819 | 0,828 |
+
+No conjunto de teste retido, com 20% dos usuários, o AUC macro foi de 0,915. Como as decisões dos experimentos foram tomadas comparando resultados nesse mesmo conjunto, os dois números devem ser lidos juntos: a convergência entre eles indica que as escolhas não se ajustaram a uma partição específica.
 
 A classe de médio risco tem desempenho inferior por razão metodológica: enquanto o alto risco corresponde a um evento concreto — a marcação pelo programa de jogo responsável da operadora —, a fronteira entre baixo e médio resulta de um corte estatístico em distribuição contínua. Usuários imediatamente acima e abaixo do limiar são comportamentalmente quase indistinguíveis.
 

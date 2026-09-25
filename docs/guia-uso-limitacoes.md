@@ -8,7 +8,9 @@ Documento de referência sobre o alcance e as restrições do modelo de classifi
 
 Um classificador que atribui a apostadores um entre três níveis de risco — baixo, médio ou alto — a partir de doze variáveis comportamentais derivadas do histórico de apostas.
 
-Foi desenvolvido como prova de conceito acadêmica, treinado sobre dados públicos e validado por métricas convencionais de aprendizado supervisionado. Alcançou AUC macro de 0,917 com desvio de 0,010 em validação cruzada de dez divisões, desempenho superior ao reportado pelos estudos revisados na literatura da área, que ficaram entre 0,60 e 0,79.
+Foi desenvolvido como prova de conceito acadêmica, treinado sobre dados públicos e validado por métricas convencionais de aprendizado supervisionado. Alcançou AUC macro de 0,915 no conjunto de teste e 0,917 em validação cruzada de dez divisões.
+
+Esse valor agregado não é diretamente comparável ao da literatura, porque duas das três classes resultam de um corte estatístico definido no próprio trabalho. Na classe de alto risco, a única definida por evento real, o AUC foi de 0,884 — acima da faixa de 0,60 a 0,79 dos estudos revisados, ainda que diferenças de base, população e período limitem a comparação.
 
 ## O que este modelo não é
 
