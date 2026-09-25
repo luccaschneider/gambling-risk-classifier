@@ -18,7 +18,7 @@ A cada nível corresponde uma intervenção proporcional, do monitoramento padr�
 
 ## O que há aqui
 
-Uma API REST para integração, um painel web de demonstração, o modelo treinado e serializado, o pipeline completo de preparação dos dados, e o registro dos quatorze experimentos que levaram à configuração final.
+Uma API REST para integração, um painel web de demonstração, o modelo treinado e serializado, o pipeline completo de preparação dos dados, e o registro das quatorze etapas de desenvolvimento que levaram à configuração final.
 
 A documentação em `docs/` cobre a especificação das variáveis de entrada, as limitações do modelo e o percurso de desenvolvimento.
 
@@ -33,6 +33,12 @@ git clone https://github.com/luccaschneider/gambling-risk-classifier.git
 cd gambling-risk-classifier
 pip install -r requirements.txt
 ```
+
+**Dois arquivos de dependências**
+
+`requirements.txt` cobre o projeto inteiro, com as bibliotecas de análise e visualização usadas no pipeline e nos experimentos — matplotlib, SHAP, imbalanced-learn e Streamlit, entre outras. É o que se instala para reproduzir o trabalho.
+
+`requirements-deploy.txt` traz apenas o necessário para a API, com as versões fixadas em `==`. É o usado no deploy, por dois motivos: evita instalar no servidor bibliotecas que só servem à análise, e garante as mesmas versões de scikit-learn e XGBoost do treino — o modelo serializado depende delas, e carregá-lo com versões diferentes pode falhar ou, pior, alterar as predições em silêncio.
 
 ## Execução
 
@@ -156,7 +162,7 @@ modelo/         Modelo serializado e metadados
 src/            API, função de predição e app Streamlit
 static/         Painel web
 pipeline/       Preparação dos dados e treino, em ordem de execução
-experimentos/   Scripts dos quatorze experimentos
+experimentos/   Scripts dos experimentos de modelagem
 resultados/     Métricas e figuras gerados
 testes/         Validação do modelo, da função e da API
 docs/           Documentação
@@ -198,7 +204,7 @@ python testes/validate_serialization.py
 
 **[Guia de uso e limitações](docs/guia-uso-limitacoes.md)** — alcance do modelo, restrições de transferência entre populações, comportamento em casos-limite e considerações éticas.
 
-**[Relatório de experimentos](docs/relatorio-experimentos.html)** — registro cronológico das quatorze etapas de desenvolvimento, com resultados e justificativa de cada decisão.
+**[Relatório de experimentos](docs/relatorio-experimentos.html)** — registro cronológico das quatorze etapas de desenvolvimento, com resultados e justificativa de cada decisão. As etapas incluem integração dos dados e geração de visualizações, que não deram origem a um script próprio em `experimentos/`.
 
 ---
 

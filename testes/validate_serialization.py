@@ -3,8 +3,14 @@ Valida a serializacao do modelo salvo em modelo/:
 1) recarrega o pipeline e reavalia no MESMO split de teste (80/20,
    random_state=42) usado no treino original, comparando com metadata.json;
 2) testa 3 casos limite: zeros, valores extremos, e valores faltantes.
+
+Termina com codigo de erro se alguma verificacao falhar.
+
+Execucao:
+    python testes/validate_serialization.py
 """
 import json
+import sys
 from pathlib import Path
 
 import joblib
@@ -85,7 +91,19 @@ for cls in class_order:
         tudo_igual &= igual
         print(f"  {metric}: salvo={v_saved:.10f}  recalculado={v_new:.10f}  identico={igual}")
 
-print(f"\n=> RESULTADO: {'TODAS as metricas batem exatamente' if tudo_igual else 'DIVERGENCIA ENCONTRADA'}")
+falhas = []
+
+
+def checar(descricao, condicao, detalhe=""):
+    if condicao:
+        print(f"  ok    {descricao}")
+    else:
+        print(f"  FALHA {descricao}  {detalhe}")
+        falhas.append(descricao)
+
+
+print()
+checar("todas as metricas do modelo carregado batem com o metadata.json", bool(tudo_igual))
 
 # ============================================================================
 # 2) CASOS LIMITE
@@ -93,32 +111,41 @@ print(f"\n=> RESULTADO: {'TODAS as metricas batem exatamente' if tudo_igual else
 print("\n\n=== 2) Casos limite ===\n")
 
 
-def rodar_caso(nome, linha_dict):
+def rodar_caso(nome, linha_dict, classe_esperada=None):
+    """Roda um caso limite e verifica que a predicao sai valida."""
     print(f"--- {nome} ---")
     entrada = pd.DataFrame([linha_dict])[features]
-    print(entrada.to_string(index=False))
     try:
         pred = pipeline.predict(entrada)[0]
         proba = pipeline.predict_proba(entrada)[0]
         classes_modelo = list(pipeline.named_steps["clf"].classes_)
         label_para_nome = {v: k for k, v in metadata["classes"]["mapeamento_label_encoder"].items()}
         nome_previsto = label_para_nome[int(pred)]
-        print(f"Predicao: {nome_previsto}")
-        for c_idx, p in zip(classes_modelo, proba):
-            print(f"  {label_para_nome[int(c_idx)]}: {p:.4f}")
+        por_classe = {label_para_nome[int(c)]: float(p) for c, p in zip(classes_modelo, proba)}
     except Exception as e:
-        print(f"ERRO: {type(e).__name__}: {e}")
+        checar(f"{nome}: o pipeline responde sem erro", False, f"{type(e).__name__}: {e}")
+        print()
+        return
+
+    print(f"  predicao: {nome_previsto}  " +
+          "  ".join(f"{c}={p:.4f}" for c, p in por_classe.items()))
+    checar(f"{nome}: classe valida", nome_previsto in class_order, nome_previsto)
+    checar(f"{nome}: probabilidades somam 1", abs(sum(por_classe.values()) - 1.0) < 1e-6)
+    if classe_esperada:
+        checar(f"{nome}: classe prevista e {classe_esperada}",
+               nome_previsto == classe_esperada, nome_previsto)
     print()
 
 
-# caso 1: tudo zero
+# caso 1: tudo zero — ausencia total de atividade deve cair em baixo risco
 caso_zeros = {f: 0.0 for f in features}
-rodar_caso("Caso 1 - todos os valores em zero", caso_zeros)
+rodar_caso("Caso 1 - todos os valores em zero", caso_zeros, classe_esperada="Baixo risco")
 
-# caso 2: valores extremamente altos (muito acima do maximo observado no dataset)
+# caso 2: valores extremos — o modelo satura, mas continua respondendo
 maximos = df[features].max()
 caso_extremo = {f: float(maximos[f]) * 100 for f in features}
-rodar_caso("Caso 2 - valores extremamente altos (100x o maximo observado)", caso_extremo)
+rodar_caso("Caso 2 - valores extremamente altos (100x o maximo observado)",
+           caso_extremo, classe_esperada="Alto risco")
 
 # caso 3: valores faltantes em 3 variaveis (usa um caso "normal" com 3 NaN)
 caso_faltante = {
@@ -135,4 +162,13 @@ caso_faltante = {
     "concentracao_apostas_dias_ativos": 0.5,
     "media_apostas_por_produto": 200.0,
 }
-rodar_caso("Caso 3 - valores faltantes em 3 variaveis (total_perdas, variedade_produtos, taxa_perda_sobre_apostado)", caso_faltante)
+rodar_caso("Caso 3 - valores faltantes em 3 variaveis (imputados pela mediana do treino)",
+           caso_faltante)
+
+print()
+if falhas:
+    print(f"FALHARAM {len(falhas)} verificacoes:")
+    for f in falhas:
+        print(f"  - {f}")
+    sys.exit(1)
+print("todas as verificacoes passaram")
