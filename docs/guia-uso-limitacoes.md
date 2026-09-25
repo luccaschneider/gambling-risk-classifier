@@ -160,6 +160,14 @@ Suspensões injustificadas têm efeito contrário ao pretendido: o usuário tend
 
 O modelo admite análise de interpretabilidade por SHAP, que permite identificar a contribuição de cada variável em predições individuais. Recomenda-se manter registro dessas explicações para decisões que resultem em restrição de acesso.
 
+A API implementa um registro das classificações. Cada chamada ao `POST /classificar` é gravada com data e hora em UTC, as doze variáveis recebidas, a classe prevista, as probabilidades, o índice de risco, o código da intervenção, os avisos de validação e a versão do modelo. A requisição aceita um identificador externo opcional, que permite ligar a decisão ao cadastro na plataforma. O endpoint `GET /registros` devolve as entradas mais recentes.
+
+O que fica registrado é a decisão, não a sua explicação: as contribuições por variável continuam dependendo de uma execução de SHAP à parte. Para decisões que restrinjam o acesso, convém guardar as duas coisas.
+
+**Limitação do registro nesta demonstração.** O banco é um arquivo SQLite em diretório temporário, porque o serviço público roda em plano gratuito sem disco persistente. O conteúdo é apagado quando o serviço reinicia ou hiberna, e apenas as 500 entradas mais recentes são mantidas — as anteriores são descartadas automaticamente. Serve para demonstrar o mecanismo, não como trilha de auditoria. Em uso real, o destino seria o banco de dados da operadora, com retenção definida pela política de privacidade e pela regulamentação aplicável.
+
+As intervenções são devolvidas em formato estruturado — código, lista de ações e parâmetros —, de modo que a plataforma as execute sem interpretar texto livre. Os parâmetros numéricos que acompanham cada ação, como duração de limite ou de suspensão, são valores de referência da demonstração: cabe à operadora defini-los segundo sua política de jogo responsável. Não constituem recomendação clínica.
+
 ### Proteção de dados
 
 Dados comportamentais de apostas são sensíveis. Qualquer aplicação sobre usuários identificáveis deve observar a legislação aplicável — no Brasil, a Lei Geral de Proteção de Dados — com atenção à base legal do tratamento, à minimização dos dados coletados e aos direitos do titular.

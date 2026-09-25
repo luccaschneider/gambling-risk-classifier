@@ -230,6 +230,16 @@ body {
   font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--texto-3);
 }
 .intervencao .texto { font-size: 12.5px; color: var(--texto); margin-top: 4px; }
+.acoes-lista { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.acao-chip {
+  font-size: 9.5px; letter-spacing: .04em; padding: 3px 7px; border-radius: var(--r-mini);
+  background: var(--superficie-alta); border: 1px solid var(--borda); color: var(--texto-2);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+.intervencao-codigo {
+  margin-top: 8px; font-size: 9.5px; letter-spacing: .06em; color: var(--texto-3);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
 
 .avisos { margin: 12px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
 .aviso {
@@ -256,6 +266,33 @@ body {
 }
 
 .rodape { margin-top: 22px; font-size: 11px; color: var(--texto-3); }
+
+/* registro de decisoes: largura total, abaixo das duas colunas */
+.registro-cartao { margin-top: 20px; }
+.registro-nota {
+  margin: 0 0 14px; font-size: 11.5px; color: var(--texto-3);
+  line-height: 1.6; max-width: 96ch;
+}
+.registro-linha {
+  display: grid; grid-template-columns: 74px 128px 62px 1fr;
+  align-items: center; gap: 12px;
+  padding: 9px 0; border-top: 1px solid var(--borda); font-size: 12px;
+}
+.registro-linha:first-child { border-top: none; }
+.registro-hora { color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.registro-classe { display: flex; align-items: center; gap: 7px; color: var(--texto); }
+.registro-ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.registro-prob { color: var(--texto-2); font-variant-numeric: tabular-nums; text-align: right; }
+.registro-acao {
+  color: var(--texto-2); font-size: 11px; letter-spacing: .03em;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.registro-vazio { font-size: 12px; color: var(--texto-3); padding: 6px 0; }
+@media (max-width: 620px) {
+  .registro-linha { grid-template-columns: 62px 1fr 54px; row-gap: 3px; }
+  .registro-acao { grid-column: 1 / -1; }
+}
 
 /* ressalva de contexto: sempre visivel, abaixo das duas colunas */
 .ressalva {
@@ -347,6 +384,23 @@ body {
     </aside>
 
   </div>
+
+  <!-- -------------------------- registro de decisoes -------------------------- -->
+  <section class="cartao registro-cartao">
+    <div class="cartao-cabeca">
+      <h2 class="cartao-titulo">Registro de decisões</h2>
+      <span class="cartao-nota" id="registro-total"></span>
+    </div>
+    <div class="cartao-corpo">
+      <p class="registro-nota">
+        Cada classificação é registrada com data, variáveis de entrada, resultado e ação recomendada,
+        permitindo auditoria das decisões. Nesta demonstração o registro é temporário e é apagado
+        quando o servidor reinicia ou hiberna; em uso real, seria gravado no banco de dados da
+        operadora. O registro é compartilhado entre todos os visitantes da demonstração.
+      </p>
+      <div id="registro-lista"></div>
+    </div>
+  </section>
 
   <footer class="ressalva">
     <p>
@@ -523,6 +577,7 @@ function arco(de, ate) {
 }
 
 // indice continuo 0..1: media das probabilidades ponderada pelo nivel
+// usado apenas se a API nao devolver indice_risco; o valor oficial vem do servidor
 function indiceRisco(prob) {
   return (prob["Medio risco"] ?? 0) * 0.5 + (prob["Alto risco"] ?? 0) * 1;
 }
@@ -574,7 +629,7 @@ function mostrarErro(titulo, mensagem) {
 
 function mostrarResultado(dados) {
   const nivel = NIVEIS.find(n => n.chave === dados.classe_prevista) ?? NIVEIS[0];
-  const indice = indiceRisco(dados.probabilidades);
+  const indice = dados.indice_risco ?? indiceRisco(dados.probabilidades);
 
   const rotulosZonas = NIVEIS.map(n =>
     `<span class="${n.chave === nivel.chave ? "ativa" : ""}">${n.nome}</span>`).join("");
@@ -606,7 +661,11 @@ function mostrarResultado(dados) {
       <div class="probabilidades">${barras}</div>
       <div class="intervencao" style="--nivel:${nivel.cor}">
         <span class="rotulo">Intervenção recomendada</span>
-        <div class="texto">${escapar(dados.intervencao)}</div>
+        <div class="texto">${escapar(dados.intervencao.descricao)}</div>
+        <div class="acoes-lista">
+          ${dados.intervencao.acoes.map(a => `<span class="acao-chip">${escapar(a.tipo)}</span>`).join("")}
+        </div>
+        <div class="intervencao-codigo">${escapar(dados.intervencao.codigo)}</div>
       </div>
       ${avisos}
     </div>`;
@@ -617,6 +676,51 @@ function mostrarResultado(dados) {
       barra.style.width = barra.dataset.alvo + "%";
     });
   });
+}
+
+/* ------------------------------------------------ registro de decisoes */
+const ACAO_LEGIVEL = {
+  MONITORAMENTO_INFORMATIVO: "Notificação informativa",
+  LIMITE_TEMPORARIO: "Limite de depósito + pausas",
+  SUSPENSAO_TEMPORARIA: "Suspensão + suporte",
+};
+
+async function carregarRegistros() {
+  const lista = document.getElementById("registro-lista");
+  const total = document.getElementById("registro-total");
+  try {
+    const resposta = await fetch("/registros?limite=8");
+    if (!resposta.ok) throw new Error("falha");
+    const dados = await resposta.json();
+
+    total.textContent = dados.total_guardado
+      ? `${dados.total_guardado} de até ${dados.limite_tabela} guardadas`
+      : "";
+
+    if (!dados.registros.length) {
+      lista.innerHTML = `<p class="registro-vazio">Nenhuma classificação registrada ainda.</p>`;
+      return;
+    }
+
+    lista.innerHTML = dados.registros.map(r => {
+      const nivel = NIVEIS.find(n => n.chave === r.classe_prevista) ?? NIVEIS[0];
+      const proba = (r.probabilidades?.[r.classe_prevista] ?? 0) * 100;
+      const hora = new Date(r.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const acao = ACAO_LEGIVEL[r.intervencao_codigo] ?? r.intervencao_codigo;
+      return `
+        <div class="registro-linha">
+          <span class="registro-hora">${escapar(hora)}</span>
+          <span class="registro-classe">
+            <span class="registro-ponto" style="background:${nivel.cor}"></span>${nivel.nome}
+          </span>
+          <span class="registro-prob">${proba.toFixed(1)}%</span>
+          <span class="registro-acao" title="${escapar(r.intervencao_codigo)}">${escapar(acao)}</span>
+        </div>`;
+    }).join("");
+  } catch {
+    lista.innerHTML = `<p class="registro-vazio">Não foi possível carregar o registro.</p>`;
+    total.textContent = "";
+  }
 }
 
 /* --------------------------------------------------------------- rede */
@@ -678,6 +782,7 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
       mostrarErro(`Entrada rejeitada (HTTP ${resposta.status})`, mensagemDeErro(dados.detail));
     } else {
       mostrarResultado(dados);
+      carregarRegistros();   // a classificacao recem-feita ja entra na lista
     }
   } catch (erro) {
     mostrarErro("Falha de conexão", "Não foi possível falar com a API. Verifique se o servidor está no ar.");
@@ -688,6 +793,7 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
 });
 
 verificarSaude();
+carregarRegistros();
 </script>
 </body>
 </html>

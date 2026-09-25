@@ -34,9 +34,9 @@ Exemplo de chamada:
 """
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -46,6 +46,7 @@ from pydantic import BaseModel, Field
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import predicao
+import registro
 
 app = FastAPI(
     title="API de Classificacao de Risco - bwin",
@@ -57,6 +58,8 @@ app = FastAPI(
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 _PAINEL = _STATIC_DIR / "index.html"
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+registro.iniciar()
 
 
 # ============================================================================
@@ -75,6 +78,15 @@ class EntradaClassificacao(BaseModel):
     tendencia_crescimento_apostado: float = Field(..., description="Inclinacao da tendencia do valor apostado ao longo do tempo")
     concentracao_apostas_dias_ativos: float = Field(..., description="Indice de Gini da distribuicao diaria do valor apostado (0 a 1)")
     media_apostas_por_produto: float = Field(..., description="numero_total_apostas / variedade_produtos")
+
+    usuario_externo: Optional[str] = Field(
+        None,
+        max_length=120,
+        description=(
+            "Identificador do usuario no sistema de origem. Opcional, gravado no "
+            "registro auditavel para rastrear a decisao ate o cadastro da operadora."
+        ),
+    )
 
     class Config:
         json_schema_extra = {
@@ -95,11 +107,52 @@ class EntradaClassificacao(BaseModel):
         }
 
 
+class AcaoIntervencao(BaseModel):
+    tipo: str = Field(..., description="Codigo da acao a executar, estavel entre versoes")
+    alvo: str = Field(..., description="Sobre o que a acao incide: usuario, conta ou equipe_interna")
+    bloqueia_conta: bool = Field(..., description="Indica se a acao impede o uso da conta")
+    parametros: Dict[str, Any] = Field(..., description="Valores de referencia, definidos pela operadora")
+    conteudo: Optional[str] = None
+    carater: Optional[str] = None
+
+
+class Intervencao(BaseModel):
+    codigo: str = Field(..., description="Codigo da intervencao para o nivel de risco")
+    nivel: str
+    acoes: List[AcaoIntervencao] = Field(..., description="Acoes a executar, na ordem")
+    descricao: str = Field(..., description="Texto para leitura humana, nao para processamento")
+
+
 class ResultadoClassificacao(BaseModel):
     classe_prevista: str
     probabilidades: Dict[str, float]
-    intervencao: str
+    indice_risco: float = Field(
+        ..., description="Posicao de 0 a 1 na escala dos tres niveis, derivada das probabilidades"
+    )
+    intervencao: Intervencao
     avisos: List[str]
+    registro_id: Optional[int] = Field(
+        None, description="Identificador da classificacao no registro auditavel"
+    )
+
+
+class RegistroClassificacao(BaseModel):
+    id: int
+    criado_em: str = Field(..., description="Data e hora em UTC, formato ISO 8601")
+    usuario_externo: Optional[str] = None
+    entradas: Dict[str, float]
+    classe_prevista: str
+    probabilidades: Dict[str, float]
+    indice_risco: float
+    intervencao_codigo: str
+    avisos: List[str]
+    versao_modelo: str
+
+
+class RegistrosResposta(BaseModel):
+    total_guardado: int = Field(..., description="Quantidade de classificacoes no registro")
+    limite_tabela: int = Field(..., description="Maximo de entradas mantidas; as mais antigas sao apagadas")
+    registros: List[RegistroClassificacao]
 
 
 class SaudeResposta(BaseModel):
@@ -131,12 +184,49 @@ def painel():
 
 @app.post("/classificar", response_model=ResultadoClassificacao)
 def classificar(entrada: EntradaClassificacao):
-    """Recebe as 12 variaveis comportamentais e devolve a classificacao de risco."""
+    """Recebe as 12 variaveis comportamentais e devolve a classificacao de risco.
+
+    A intervencao vem estruturada em codigo e lista de acoes, para ser executada
+    sem interpretar texto. Cada chamada e gravada no registro auditavel.
+    """
+    dados = entrada.model_dump()
+    usuario_externo = dados.pop("usuario_externo", None)
+
     try:
-        resultado = predicao.prever_risco(entrada.model_dump())
+        resultado = predicao.prever_risco(dados)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+    _, metadata = predicao._carregar()
+    resultado["registro_id"] = registro.gravar(
+        entradas=dados,
+        resultado=resultado,
+        indice_risco=resultado["indice_risco"],
+        versao_modelo=metadata.get("versao_modelo", "desconhecida"),
+        usuario_externo=usuario_externo,
+    )
     return resultado
+
+
+@app.get("/registros", response_model=RegistrosResposta)
+def registros(
+    limite: int = Query(
+        20, ge=1, le=registro.ENTRADAS_MAXIMAS,
+        description="Quantidade de classificacoes a devolver, da mais recente para a mais antiga",
+    )
+):
+    """Lista as classificacoes ja feitas, para auditoria das decisoes.
+
+    Cada entrada traz as variaveis recebidas, o resultado, a intervencao aplicada
+    e a versao do modelo. Nesta demonstracao o registro fica em arquivo temporario
+    e e apagado quando o servico reinicia ou hiberna; alem disso guarda apenas as
+    ultimas entradas, entao nao serve como historico completo.
+    """
+    return RegistrosResposta(
+        total_guardado=registro.total(),
+        limite_tabela=registro.ENTRADAS_MAXIMAS,
+        registros=registro.listar(limite),
+    )
 
 
 @app.get("/saude", response_model=SaudeResposta)

@@ -4,10 +4,15 @@ comportamentais, sem balanceamento). Carrega o pipeline e os metadados uma
 unica vez (na primeira chamada) e expõe prever_risco().
 """
 import json
+import sys
 from pathlib import Path
 
 import joblib
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from intervencoes import intervencao_para
 
 _MODEL_DIR = Path(__file__).resolve().parents[1] / "modelo"
 _MODEL_PATH = _MODEL_DIR / "xgboost_tunado_comportamental.joblib"
@@ -25,11 +30,17 @@ _VARIAVEIS_PODEM_SER_NEGATIVAS = {
 }
 _TOLERANCIA_COERENCIA = 0.01  # 1% de divergencia relativa tolerada
 
-INTERVENCOES = {
-    "Baixo risco": "Nenhuma intervencao necessaria - manter monitoramento padrao.",
-    "Medio risco": "Enviar alerta preventivo e oferecer ferramentas de autolimitacao (limite de deposito/aposta).",
-    "Alto risco": "Encaminhar para a equipe de jogo responsavel - contato ativo, oferta de autoexclusao e limites obrigatorios.",
-}
+# pesos do indice de risco: posicao continua de 0 a 1 na escala dos tres niveis
+_PESO_NIVEL = {"Baixo risco": 0.0, "Medio risco": 0.5, "Alto risco": 1.0}
+
+
+def indice_de_risco(probabilidades: dict) -> float:
+    """Media das probabilidades ponderada pelo nivel, de 0 a 1.
+
+    E um valor derivado da saida do modelo, nao uma saida direta dele: serve
+    para posicionar o usuario na escala continua entre os tres niveis.
+    """
+    return sum(probabilidades.get(nivel, 0.0) * peso for nivel, peso in _PESO_NIVEL.items())
 
 
 def _carregar():
@@ -57,7 +68,9 @@ def prever_risco(dados: dict) -> dict:
     dict com as chaves:
         classe_prevista : str  ("Baixo risco" / "Medio risco" / "Alto risco")
         probabilidades  : dict {classe: probabilidade}
-        intervencao     : str, acao recomendada para a classe prevista
+        indice_risco    : float de 0 a 1, posicao na escala continua dos tres
+                          niveis — derivado das probabilidades, nao saida direta
+        intervencao     : dict estruturado (codigo, acoes, descricao) para a classe
         avisos          : list[str], alertas nao bloqueantes gerados na validacao
 
     Levanta ValueError se:
@@ -146,7 +159,8 @@ def prever_risco(dados: dict) -> dict:
     return {
         "classe_prevista": classe_prevista,
         "probabilidades": probabilidades,
-        "intervencao": INTERVENCOES[classe_prevista],
+        "indice_risco": indice_de_risco(probabilidades),
+        "intervencao": intervencao_para(classe_prevista),
         "avisos": avisos,
     }
 

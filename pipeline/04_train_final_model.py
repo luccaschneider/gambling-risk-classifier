@@ -87,6 +87,9 @@ print(f"Pipeline salvo em: {model_path}")
 
 # --- metadados ----------------------------------------------------------------
 metadata = {
+    # gravada em cada classificacao do registro auditavel; suba a versao ao
+    # retreinar com dados ou hiperparametros diferentes
+    "versao_modelo": "1.0.0",
     "descricao": "XGBoost tunado, 12 variaveis comportamentais, sem balanceamento (modelo oficial)",
     "features_entrada_ordem": BEHAVIORAL_FEATURES,
     "classes": {

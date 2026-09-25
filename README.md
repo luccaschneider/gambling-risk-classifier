@@ -75,6 +75,8 @@ Content-Type: application/json
 }
 ```
 
+O campo `usuario_externo` é opcional e serve para rastrear a decisão até o cadastro da operadora.
+
 ```json
 {
   "classe_prevista": "Alto risco",
@@ -83,15 +85,46 @@ Content-Type: application/json
     "Medio risco": 0.1008,
     "Alto risco": 0.8930
   },
-  "intervencao": "Encaminhar para a equipe de jogo responsavel...",
-  "avisos": []
+  "indice_risco": 0.9427,
+  "intervencao": {
+    "codigo": "SUSPENSAO_TEMPORARIA",
+    "nivel": "Alto risco",
+    "acoes": [
+      {
+        "tipo": "SUSPENDER_CONTA",
+        "alvo": "conta",
+        "carater": "temporario",
+        "bloqueia_conta": true,
+        "parametros": { "duracao_dias": 30, "reversivel": true }
+      },
+      {
+        "tipo": "ENCAMINHAR_SUPORTE",
+        "alvo": "equipe_interna",
+        "carater": "atendimento",
+        "bloqueia_conta": false,
+        "parametros": { "canal": "suporte_jogo_responsavel", "prazo_contato_horas": 48 }
+      }
+    ],
+    "descricao": "Suspensão temporária da conta e encaminhamento para canal de suporte especializado em jogo responsável."
+  },
+  "avisos": [],
+  "registro_id": 12
 }
 ```
+
+A intervenção vem estruturada para ser executada sem interpretar texto: o `codigo` identifica o nível de resposta e cada ação traz `tipo`, `alvo` e se bloqueia a conta. Os valores em `parametros` são de referência — prazos e percentuais devem ser definidos pela operadora conforme sua política de jogo responsável, não são recomendação clínica.
+
+O `indice_risco` vai de 0 a 1 e posiciona o usuário na escala contínua entre os três níveis. É derivado das probabilidades, não uma saída direta do modelo.
 
 **Outros endpoints**
 
 `GET /saude` — confirma que o modelo está carregado
 `GET /variaveis` — lista as variáveis esperadas, na ordem, com as faixas observadas
+`GET /registros` — últimas classificações registradas, para auditoria; aceita `?limite=N`
+
+**Registro auditável**
+
+Cada chamada ao `POST /classificar` é gravada em SQLite com data e hora em UTC, as doze entradas, o resultado, o código da intervenção, os avisos e a versão do modelo. Nesta demonstração o banco fica em arquivo temporário e guarda as 500 entradas mais recentes — o plano gratuito do Render não tem disco persistente, então o registro se perde quando o serviço reinicia ou hiberna. Em uso real, seria uma tabela no banco da operadora.
 
 ---
 

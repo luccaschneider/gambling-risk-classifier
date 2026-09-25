@@ -340,7 +340,12 @@ if classificar:
         st.markdown('<div class="bloco-rotulo">Probabilidades por classe</div>', unsafe_allow_html=True)
         st.pyplot(grafico_probabilidades(resultado["probabilidades"]), width="content")
 
-        bloco("Intervenção recomendada", texto=resultado["intervencao"])
+        intervencao = resultado["intervencao"]
+        acoes = " · ".join(a["tipo"] for a in intervencao["acoes"])
+        bloco(
+            "Intervenção recomendada",
+            texto=f"{intervencao['descricao']}\n\n{intervencao['codigo']} — {acoes}",
+        )
 
         if resultado["avisos"]:
             for aviso in resultado["avisos"]:
