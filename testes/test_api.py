@@ -85,6 +85,18 @@ checar("  acao de suspensao bloqueia a conta", intervencao["acoes"][0]["bloqueia
 checar("  parametros vem preenchidos", bool(intervencao["acoes"][0]["parametros"]))
 checar("  descricao tem acentuacao", any(c in intervencao["descricao"] for c in "áéíóúâêôãõç"))
 
+# o direito de recurso precisa sobreviver a serializacao da API, nao so existir no modulo
+suspensao = next(a for a in intervencao["acoes"] if a["tipo"] == "SUSPENDER_CONTA")
+encaminhamento = next(a for a in intervencao["acoes"] if a["tipo"] == "ENCAMINHAR_SUPORTE")
+checar("  suspensao permite contestacao",
+       suspensao["parametros"].get("contestacao_permitida") is True)
+checar("  suspensao traz prazo de reanalise",
+       isinstance(suspensao["parametros"].get("prazo_resposta_reanalise_dias"), int))
+checar("  encaminhamento comunica o direito de recurso",
+       encaminhamento["parametros"].get("comunicar_direito_recurso") is True)
+checar("  descricao menciona contestacao e reanalise",
+       "contestar" in intervencao["descricao"] and "reanálise" in intervencao["descricao"])
+
 print()
 print("== registro auditavel ==")
 antes = registro.total()

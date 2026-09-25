@@ -100,6 +100,31 @@ bloqueiam = {c: any(a["bloqueia_conta"] for a in i["acoes"]) for c, i in INTERVE
 checar("so o alto risco bloqueia a conta",
        bloqueiam == {"Baixo risco": False, "Medio risco": False, "Alto risco": True}, str(bloqueiam))
 
+print()
+print("== direito de recurso no alto risco ==")
+
+alto = INTERVENCOES["Alto risco"]
+suspensao = next(a for a in alto["acoes"] if a["tipo"] == "SUSPENDER_CONTA")
+encaminhamento = next(a for a in alto["acoes"] if a["tipo"] == "ENCAMINHAR_SUPORTE")
+
+checar("suspensao permite contestacao",
+       suspensao["parametros"].get("contestacao_permitida") is True)
+checar("suspensao define prazo de resposta a reanalise",
+       isinstance(suspensao["parametros"].get("prazo_resposta_reanalise_dias"), int))
+checar("suspensao continua de 30 dias",
+       suspensao["parametros"]["duracao_dias"] == 30, suspensao["parametros"]["duracao_dias"])
+checar("encaminhamento comunica o direito de recurso",
+       encaminhamento["parametros"].get("comunicar_direito_recurso") is True)
+checar("  a acao marca esse conteudo",
+       encaminhamento.get("conteudo") == "comunicar_direito_de_recurso", encaminhamento.get("conteudo"))
+checar("descricao informa contestacao e reanalise",
+       "contestar" in alto["descricao"] and "reanálise" in alto["descricao"], alto["descricao"][:70])
+
+# a acao que restringe acesso e a unica que precisa de recurso
+for classe in ("Baixo risco", "Medio risco"):
+    sem_bloqueio = all(not a["bloqueia_conta"] for a in INTERVENCOES[classe]["acoes"])
+    checar(f"{classe}: nenhuma acao restringe acesso, entao nao exige recurso", sem_bloqueio)
+
 resultado = prever_risco(BASE)
 checar("resultado traz intervencao estruturada", isinstance(resultado["intervencao"], dict))
 checar("  intervencao corresponde a classe prevista",

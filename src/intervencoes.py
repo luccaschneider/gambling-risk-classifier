@@ -8,7 +8,8 @@ descrição em português existe para leitura humana, não para ser processada.
 As ações seguem o que o trabalho definiu para cada nível:
   Baixo  - notificação informativa sobre tempo de sessão e valores movimentados
   Médio  - limite temporário de depósito e sugestão de pausas entre sessões
-  Alto   - suspensão temporária da conta e encaminhamento para suporte especializado
+  Alto   - suspensão temporária da conta e encaminhamento para suporte especializado,
+           com direito de contestação e reanálise comunicado ao usuário
 """
 
 # ---------------------------------------------------------------------------
@@ -36,10 +37,15 @@ PARAMETROS_REFERENCIA = {
     "suspensao_conta": {
         "duracao_dias": 30,
         "reversivel": True,
+        # a suspensao e a unica acao que restringe o acesso, entao vem com
+        # direito de contestacao: o usuario pode pedir reanalise do caso
+        "contestacao_permitida": True,
+        "prazo_resposta_reanalise_dias": 5,
     },
     "encaminhamento_suporte": {
         "canal": "suporte_jogo_responsavel",
         "prazo_contato_horas": 48,
+        "comunicar_direito_recurso": True,
     },
 }
 
@@ -101,13 +107,16 @@ INTERVENCOES = {
                 "tipo": "ENCAMINHAR_SUPORTE",
                 "alvo": "equipe_interna",
                 "carater": "atendimento",
+                "conteudo": "comunicar_direito_de_recurso",
                 "bloqueia_conta": False,
                 "parametros": PARAMETROS_REFERENCIA["encaminhamento_suporte"],
             },
         ],
         "descricao": (
             "Suspensão temporária da conta e encaminhamento para canal de "
-            "suporte especializado em jogo responsável."
+            "suporte especializado em jogo responsável. O usuário pode contestar "
+            "a suspensão e solicitar a reanálise do caso; esse direito deve ser "
+            "comunicado a ele no primeiro contato do suporte."
         ),
     },
 }

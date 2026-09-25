@@ -154,6 +154,10 @@ Um usuário classificado como alto risco apresenta padrão comportamental compat
 
 Medidas restritivas aplicadas automaticamente devem ser proporcionais ao risco identificado e comunicadas de forma clara, com possibilidade de contestação.
 
+Essa possibilidade está implementada na intervenção de alto risco, a única que restringe o acesso. A suspensão temporária vem com `contestacao_permitida` e um prazo de resposta à reanálise entre seus parâmetros, e o encaminhamento ao suporte carrega a instrução de comunicar esse direito ao usuário no primeiro contato. O prazo, como os demais valores numéricos, é de referência e cabe à operadora definir.
+
+O que o modelo entrega é a marcação do direito na estrutura da intervenção; o canal de contestação e a reanálise em si são responsabilidade de quem integra.
+
 Suspensões injustificadas têm efeito contrário ao pretendido: o usuário tende a migrar para plataformas sem qualquer mecanismo de proteção, ampliando a exposição que o sistema buscava reduzir.
 
 ### Auditabilidade
