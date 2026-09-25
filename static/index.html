@@ -192,6 +192,8 @@ body {
 .medidor-legenda {
   font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
 }
+/* explica, junto do rotulo, que o indice e derivado — nao saida direta do modelo */
+.medidor-nota { font-size: 9.5px; }
 
 .zonas-rotulos {
   display: grid; grid-template-columns: repeat(3, 1fr);
@@ -254,6 +256,17 @@ body {
 }
 
 .rodape { margin-top: 22px; font-size: 11px; color: var(--texto-3); }
+
+/* ressalva de contexto: sempre visivel, abaixo das duas colunas */
+.ressalva {
+  margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--borda);
+  font-size: 11.5px; color: var(--texto-3); line-height: 1.6; max-width: 92ch;
+}
+.ressalva p { margin: 0 0 6px; }
+.ressalva p:last-child { margin-bottom: 0; }
+.ressalva a { color: var(--acento); text-decoration: none; border-bottom: 1px solid transparent; }
+.ressalva a:hover { border-bottom-color: var(--acento); }
+.ressalva a:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, .agulha, .prob .barra { transition: none !important; animation: none !important; }
@@ -334,6 +347,18 @@ body {
     </aside>
 
   </div>
+
+  <footer class="ressalva">
+    <p>
+      Modelo treinado sobre dados públicos de apostadores de uma operadora europeia, coletados entre
+      2005 e 2007 (Gray, LaPlante e Shaffer, 2012). Desenvolvido como prova de conceito. A
+      classificação indica padrão de comportamento compatível com risco e não constitui diagnóstico.
+    </p>
+    <p>
+      <a href="https://github.com/luccaschneider/gambling-risk-classifier"
+         target="_blank" rel="noopener">Documentação e limitações do modelo</a>
+    </p>
+  </footer>
 </div>
 
 <script>
@@ -523,10 +548,12 @@ function svgMedidor(indice, chaveClasse, corClasse) {
       <circle cx="${CX}" cy="${CY - RAIO}" r="11" fill="var(--superficie)"></circle>
       <circle cx="${CX}" cy="${CY - RAIO}" r="7.5" fill="var(--texto)"></circle>
     </g>
-    <text class="medidor-valor" x="${CX}" y="${CY - 26}" text-anchor="middle"
+    <text class="medidor-valor" x="${CX}" y="${CY - 30}" text-anchor="middle"
           fill="${corClasse}">${(indice * 100).toFixed(0)}</text>
-    <text class="medidor-legenda" x="${CX}" y="${CY - 8}" text-anchor="middle"
+    <text class="medidor-legenda" x="${CX}" y="${CY - 13}" text-anchor="middle"
           fill="var(--texto-3)">índice de risco</text>
+    <text class="medidor-nota" x="${CX}" y="${CY + 1}" text-anchor="middle"
+          fill="var(--texto-3)">calculado a partir das três probabilidades</text>
   </svg>`;
 }
 
@@ -574,7 +601,7 @@ function mostrarResultado(dados) {
       <div class="zonas-rotulos">${rotulosZonas}</div>
       <div class="veredito">
         <div class="classe" style="color:${nivel.cor}">${nivel.nome}</div>
-        <div class="indice">média das probabilidades ponderada por nível (0 a 100)</div>
+        <div class="indice">${((dados.probabilidades[nivel.chave] ?? 0) * 100).toFixed(1)}% de probabilidade</div>
       </div>
       <div class="probabilidades">${barras}</div>
       <div class="intervencao" style="--nivel:${nivel.cor}">
