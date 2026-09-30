@@ -24,7 +24,7 @@ Não substitui os mecanismos de jogo responsável exigidos pela regulamentação
 
 ## Origem dos dados de treino
 
-O modelo foi treinado sobre a base disponibilizada pelo Transparency Project, da Division on Addiction do Cambridge Health Alliance, hospital de ensino da Harvard Medical School. São registros reais de 4.113 apostadores da operadora bwin, coletados entre 2005 e 2007.
+O modelo foi treinado sobre a base disponibilizada pelo Transparency Project, da Division on Addiction do Cambridge Health Alliance, hospital de ensino da Harvard Medical School. São registros reais de 4.113 apostadores da operadora bwin, com atividade de apostas entre 2000 e 2010, concentrada em 2008 e 2009. Os eventos do programa de jogo responsável, que definem a classe de alto risco, foram registrados entre novembro de 2008 e novembro de 2009.
 
 A classificação de alto risco corresponde à marcação efetuada pelo programa de jogo responsável da própria operadora. As classes de baixo e médio risco resultam de um escore composto aplicado sobre quatro variáveis comportamentais, com corte na mediana.
 
@@ -48,7 +48,7 @@ Uma plataforma cuja base tenha perfil de movimentação diferente produzirá cla
 
 Converter valores pela cotação ajusta a unidade, não a distribuição. O problema não é que os números estejam em outra moeda; é que ocupam outra posição na curva.
 
-Há ainda o fator temporal. Entre 2005 e hoje mudaram a renda média, os padrões de consumo e o próprio produto — a bwin daquele período era navegador, depósito por cartão e aposta antes do evento, enquanto plataformas atuais operam por aplicativo, com transferência instantânea e aposta durante a partida. A frequência de apostas por dia ativo tem outra ordem de grandeza.
+Há ainda o fator temporal. Entre o período dos dados e hoje mudaram a renda média, os padrões de consumo e o próprio produto. A bwin já oferecia apostas ao vivo, mas o acesso predominante era pelo navegador e os depósitos, por cartão; as plataformas atuais operam principalmente por aplicativo, com transferência instantânea e uma oferta muito mais ampla de mercados durante as partidas. A frequência de apostas por dia ativo tem outra ordem de grandeza.
 
 ### A assimetria agrava o problema
 

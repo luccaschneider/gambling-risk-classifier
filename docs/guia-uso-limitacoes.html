@@ -195,7 +195,7 @@
       <div><dt>Modelo</dt><dd>XGBoost ajustado</dd></div>
       <div><dt>Variáveis</dt><dd>12 comportamentais</dd></div>
       <div><dt>AUC macro</dt><dd>0,917 ± 0,010</dd></div>
-      <div><dt>Base de treino</dt><dd>bwin, 2005–2007</dd></div>
+      <div><dt>Base de treino</dt><dd>bwin, 2000–2010</dd></div>
     </dl>
   </div>
 </header>
@@ -226,7 +226,7 @@
   <div class="wrap">
     <h2>Origem dos dados de treino</h2>
     <div class="corpo">
-      <p>O modelo foi treinado sobre a base disponibilizada pelo Transparency Project, da Division on Addiction do Cambridge Health Alliance, hospital de ensino da Harvard Medical School. São registros reais de 4.113 apostadores da operadora bwin, coletados entre 2005 e 2007.</p>
+      <p>O modelo foi treinado sobre a base disponibilizada pelo Transparency Project, da Division on Addiction do Cambridge Health Alliance, hospital de ensino da Harvard Medical School. São registros reais de 4.113 apostadores da operadora bwin, com atividade de apostas entre 2000 e 2010, concentrada em 2008 e 2009. Os eventos do programa de jogo responsável, que definem a classe de alto risco, foram registrados entre novembro de 2008 e novembro de 2009.</p>
       <p>A classificação de alto risco corresponde à marcação efetuada pelo programa de jogo responsável da própria operadora. As classes de baixo e médio risco resultam de um escore composto aplicado sobre quatro variáveis comportamentais, com corte na mediana.</p>
       <p>Essa distinção de origem entre as classes tem consequência direta no desempenho, tratada adiante na seção de limitações.</p>
     </div>
@@ -247,7 +247,7 @@
 
       <h3>A conversão de moeda não resolve</h3>
       <p>Converter valores pela cotação ajusta a unidade, não a distribuição. O problema não é que os números estejam em outra moeda; é que ocupam outra posição na curva.</p>
-      <p>Há ainda o fator temporal. Entre 2005 e hoje mudaram a renda média, os padrões de consumo e o próprio produto — a bwin daquele período era navegador, depósito por cartão e aposta antes do evento, enquanto plataformas atuais operam por aplicativo, com transferência instantânea e aposta durante a partida. A frequência de apostas por dia ativo tem outra ordem de grandeza.</p>
+      <p>Há ainda o fator temporal. Entre o período dos dados e hoje mudaram a renda média, os padrões de consumo e o próprio produto. A bwin já oferecia apostas ao vivo, mas o acesso predominante era pelo navegador e os depósitos, por cartão; as plataformas atuais operam principalmente por aplicativo, com transferência instantânea e uma oferta muito mais ampla de mercados durante as partidas. A frequência de apostas por dia ativo tem outra ordem de grandeza.</p>
 
       <h3>A assimetria agrava o problema</h3>
       <p>As variáveis monetárias e de contagem apresentam cauda longa à direita:</p>

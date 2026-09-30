@@ -25,7 +25,7 @@ O pipeline embutido substitui qualquer valor ausente pela mediana calculada no t
 
 ### Valores absolutos não transferem entre populações
 
-As faixas documentadas aqui refletem a base bwin entre 2005 e 2007. Uma plataforma com perfil de movimentação diferente produzirá classificações deslocadas se enviar valores absolutos. A conversão de moeda não resolve o problema, porque o modelo aprendeu posições relativas dentro daquela população, não patamares monetários.
+As faixas documentadas aqui refletem a base bwin, com registros entre 2000 e 2010. Uma plataforma com perfil de movimentação diferente produzirá classificações deslocadas se enviar valores absolutos. A conversão de moeda não resolve o problema, porque o modelo aprendeu posições relativas dentro daquela população, não patamares monetários.
 
 ---
 
