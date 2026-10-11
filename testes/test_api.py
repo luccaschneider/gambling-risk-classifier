@@ -61,9 +61,9 @@ checar("  lista as 12 variaveis", len(r.json()["variaveis"]) == 12)
 
 r = cliente.get("/")
 checar("GET / serve o painel", r.status_code == 200 and "text/html" in r.headers["content-type"])
-checar("  painel se identifica como PARCUS", "<h1>PARCUS</h1>" in r.text)
+checar("  painel se identifica como PARCUS", ">PARCUS</h1>" in r.text and "Painel de Risco Comportamental do Usuário" in r.text)
 
-r = cliente.get("/static/fonts/SpaceGrotesk-SemiBold-latin.woff2")
+r = cliente.get("/static/fonts/parcus-titulo-600.woff2")
 checar("fonte do titulo servida como font/woff2",
        r.status_code == 200 and r.headers["content-type"] == "font/woff2", r.headers.get("content-type"))
 

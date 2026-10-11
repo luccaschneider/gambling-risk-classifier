@@ -1,23 +1,31 @@
-Fonte usada no título do painel: Space Grotesk
-Arquivo: SpaceGrotesk-SemiBold-latin.woff2
-Origem: https://github.com/floriankarsten/space-grotesk (distribuída também em google/fonts, ofl/spacegrotesk)
+Fonte dos títulos do painel PARCUS
+Arquivo: parcus-titulo-600.woff2 (nome interno da família: "PARCUS Titulo")
+Derivada de: IBM Plex Sans, Copyright © 2017 IBM Corp.
+Origem: https://github.com/IBM/plex (distribuída também em google/fonts, ofl/ibmplexsans)
 Licença: SIL Open Font License, versão 1.1 (texto integral abaixo)
 
-Modificações feitas para este projeto, permitidas pela OFL:
-- instância estática no peso 600, extraída do arquivo variável SpaceGrotesk[wght].ttf;
+Modificações feitas para este projeto:
+- instância estática no peso 600 e largura normal, extraída do arquivo variável
+  IBMPlexSans[wdth,wght].ttf;
 - subconjunto de caracteres: Latin básico e Latin-1 (U+0020-007E, U+00A0-00FF),
-  travessões, aspas tipográficas, marcador e reticências — cobre os acentos do
+  travessões, aspas tipográficas, marcador e reticências; cobre os acentos do
   português (ç ã õ á é ê í ó ú à â ô);
 - conversão para WOFF2.
+
+Nome reservado: a IBM declara "Plex" como Reserved Font Name. A cláusula 3 da
+OFL proíbe que uma versão modificada (como este subconjunto) use esse nome, por
+isso a família foi renomeada para "PARCUS Titulo" no arquivo e no @font-face.
+O aviso de copyright original é mantido acima e no texto da licença.
+
 O arquivo é servido localmente pelo próprio painel, sem CDN.
 
 --------------------------------------------------------------------------------
 
-Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
-This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+
+This license is copied below, and is also available with a FAQ at: http://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

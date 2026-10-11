@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PARCUS — Painel de Risco Comportamental do Usuário</title>
 <meta name="description" content="PARCUS — Painel de Risco Comportamental do Usuário: classificação de risco em apostas online por XGBoost a partir de 12 variáveis comportamentais.">
-<link rel="preload" href="/static/fonts/SpaceGrotesk-SemiBold-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/parcus-titulo-600.woff2" as="font" type="font/woff2" crossorigin>
 <script>
 /* Tema aplicado antes da primeira pintura, para nao piscar.
    Ordem: escolha salva pelo usuario > preferencia do sistema. */
@@ -19,76 +19,97 @@
 })();
 </script>
 <style>
-/* ---------------------------------------------------------------------------
-   Cores. Verde, ambar e vermelho sao RESERVADOS para o nivel de risco, nos
-   dois temas; a interface usa neutros e um acento azul. Cada par de texto e
-   cada borda de controle foi medido para WCAG AA (texto 4.5:1, componentes 3:1).
---------------------------------------------------------------------------- */
-:root {
-  color-scheme: light;
-  --fundo:          #f3f5f8;
-  --superficie:     #ffffff;
-  --superficie-alta:#eef1f5;
-  --campo:          #ffffff;
-  --borda:          #dde2e9;
-  --borda-controle: #8a94a2;
-  --texto:          #121821;
-  --texto-2:        #3d4856;
-  --texto-3:        #586373;
-  --acento:         #1f5fc2;
-  --acento-texto:   #ffffff;
-  --acento-anel:    rgba(31, 95, 194, .22);
-  --trilha:         #e3e8ee;
-  --dica-fundo:     #1b2430;
-  --dica-texto:     #f2f5f8;
-
-  --risco-baixo:    #15875e;
-  --risco-medio:    #9e6b00;
-  --risco-alto:     #d0302a;
-
-  --sombra: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .05);
-
-  --r-bloco: 14px;
-  --r-campo: 9px;
-  --r-mini:  5px;
-}
-[data-theme="dark"] {
-  color-scheme: dark;
-  --fundo:          #0d1219;
-  --superficie:     #161d26;
-  --superficie-alta:#1d2632;
-  --campo:          #111823;
-  --borda:          #263140;
-  --borda-controle: #5b6a7c;
-  --texto:          #e6ecf3;
-  --texto-2:        #b0bccb;
-  --texto-3:        #8d9aab;
-  --acento:         #4d96ea;
-  --acento-texto:   #07101c;
-  --acento-anel:    rgba(77, 150, 234, .28);
-  --trilha:         #222c39;
-  --dica-fundo:     #e6ecf3;
-  --dica-texto:     #111823;
-
-  --risco-baixo:    #30a675;
-  --risco-medio:    #c4811c;
-  --risco-alto:     #e0473b;
-
-  --sombra: 0 1px 2px rgba(0, 0, 0, .3);
-}
-
-/* Fonte do titulo, servida pelo proprio painel (montagem /static do FastAPI).
-   Caminho relativo a raiz do site: vale em qualquer dominio ou porta.
-   Se o arquivo falhar, o titulo cai na fonte do sistema sem mudar o layout. */
+/* Fonte dos titulos: derivada da IBM Plex Sans 600 (OFL), servida pelo proprio
+   painel (montagem /static do FastAPI). Renomeada para "PARCUS Titulo" porque
+   "Plex" e nome reservado na licenca; ver static/fonts/LICENSE.
+   Caminho relativo a raiz do site: vale em qualquer dominio ou porta. */
 @font-face {
-  font-family: "Space Grotesk Painel";
-  src: url("/static/fonts/SpaceGrotesk-SemiBold-latin.woff2") format("woff2");
+  font-family: "PARCUS Titulo";
+  src: url("/static/fonts/parcus-titulo-600.woff2") format("woff2");
   font-weight: 600; font-style: normal; font-display: swap;
   unicode-range: U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201D, U+2022, U+2026;
 }
 
-* { box-sizing: border-box; }
+/* ---------------------------------------------------------------------------
+   Cores. Verde, ambar e vermelho sao EXCLUSIVOS do nivel de risco (indicadores,
+   anel, barras, selos, registro e perfis de exemplo). A interface usa
+   azul-marinho, azul-petroleo, azul medio e cinza-azulado. Todos os pares foram
+   medidos para WCAG AA (texto 4.5:1, texto grande e componentes 3:1).
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --fundo:           #eef2f6;
+  --superficie:      #ffffff;
+  --superficie-alta: #f3f6f9;
+  --campo:           #ffffff;
+  --borda:           #dde3ea;
+  --borda-controle:  #8592a3;
+  --texto:           #111a26;
+  --texto-2:         #3b4757;
+  --texto-3:         #5a6677;
+  --acento:          #2563c9;
+  --acento-anel:     rgba(37, 99, 201, .25);
+  --trilha:          #e2e8ef;
+  --dica-fundo:      #14202f;
+  --dica-texto:      #f2f5f8;
 
+  --lateral:         #0f1f3d;
+  --lateral-icone:   #b8c4d8;
+  --lateral-ativo:   rgba(255, 255, 255, .12);
+  --faixa:           #0e5a6e;
+  --faixa-texto:     #ffffff;
+  --faixa-sub:       #cfe6ec;
+  --faixa-hover:     rgba(255, 255, 255, .12);
+  --faixa-foco:      #ffffff;   /* anel externo do foco na faixa */
+  --faixa-foco-in:   #06121f;   /* anel interno */
+  /* botao CLASSIFICAR: azul-cobalto com texto branco. O preenchimento e
+     escuro como a faixa; o contorno contra ela vem da borda clara */
+  --botao:           #2563c9;
+  --botao-hover:     #1d4fa3;
+  --botao-ativo:     #1a4a9e;
+  --botao-desabilitado: #4a6796;
+  --botao-borda:     #cfe0ff;
+  --botao-texto:     #ffffff;
+  --marca:           #2563c9;
+
+  --risco-baixo:     #15875e;
+  --risco-medio:     #9e6b00;
+  --risco-alto:      #d0302a;
+  --selo-texto:      #ffffff;
+
+  --r-cartao: 12px;
+  --r-campo:  8px;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --fundo:           #0a1120;
+  --superficie:      #1c222b;
+  --superficie-alta: #232a34;
+  --campo:           #151b23;
+  --borda:           #2d3541;
+  --borda-controle:  #6b7788;
+  --texto:           #e7edf4;
+  --texto-2:         #b6c1cf;
+  --texto-3:         #94a1b3;
+  --acento:          #6ea2f5;
+  --acento-anel:     rgba(110, 162, 245, .3);
+  --trilha:          #2c3440;
+  --dica-fundo:      #e7edf4;
+  --dica-texto:      #111a26;
+
+  --lateral:         #060c18;
+  --lateral-icone:   #a9b6cc;
+  --lateral-ativo:   rgba(255, 255, 255, .1);
+  /* a faixa do titulo usa o mesmo azul-petroleo nos dois temas (tokens do :root) */
+  --botao-hover:     #3170d8;
+
+  --risco-baixo:     #34ad7a;
+  --risco-medio:     #d08a1e;
+  --risco-alto:      #ef5d50;
+  --selo-texto:      #0a1120;
+}
+
+* { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
   margin: 0;
@@ -99,6 +120,9 @@ body {
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
+.titulo-fonte { font-family: "PARCUS Titulo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+.so-leitor { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* troca de tema: transicao curta de cor, so durante a troca */
 html.trocando-tema, html.trocando-tema * {
@@ -107,160 +131,194 @@ html.trocando-tema, html.trocando-tema * {
 }
 
 /* ------------------------------ estrutura -------------------------------
-   Em desktop a pagina ocupa exatamente uma tela: cabecalho, area principal
-   e rodape em coluna; so componentes internos rolam. */
+   Em desktop a pagina ocupa exatamente uma tela: barra lateral + coluna com
+   faixa, indicadores, corpo e rodape. So componentes internos rolam. */
 .app {
-  height: 100vh;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  height: 100vh; height: 100dvh;
+  display: grid; grid-template-columns: 64px minmax(0, 1fr);
   overflow: hidden;
 }
-.app > * { flex: none; }
 
-.topo {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: clamp(8px, 1.3vh, 14px) 20px;
-  background: var(--superficie);
-  border-bottom: 1px solid var(--borda);
+/* ---------------------------- barra lateral ---------------------------- */
+.lateral {
+  position: relative; z-index: 40;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 0 16px;
+  background: var(--lateral);
 }
-.topo-marca { display: flex; align-items: center; gap: clamp(10px, .9vw, 16px); min-width: 0; }
-/* selo: escudo com linha de pulso, no acento */
-.marca {
-  flex: none; display: grid; place-items: center;
-  width: clamp(36px, 2.9vw, 50px); aspect-ratio: 1;
-  border-radius: 11px; background: var(--acento); color: var(--acento-texto);
+.marca { display: block; width: 38px; height: 38px; margin-bottom: 20px; flex: none; }
+.navegacao { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lateral-base { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.item-lateral {
+  position: relative; flex: none;
+  width: 42px; height: 42px; display: grid; place-items: center;
+  border: 0; border-radius: 10px; background: transparent; color: var(--lateral-icone);
+  text-decoration: none; cursor: pointer; font: inherit;
+  transition: background-color 120ms ease, color 120ms ease;
 }
-.marca svg { width: 62%; height: 62%; }
-.topo-textos { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-/* titulo: fonte propria (Space Grotesk, local), 2,15x a 2,8x o texto base,
-   crescendo linearmente entre 1280 e 1920 px de largura */
-.topo h1 {
-  margin: 0;
-  font-family: "Space Grotesk Painel", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(28px, calc(12px + 1.25vw), 36px);
-  font-weight: 600; line-height: 1.08; letter-spacing: .04em;
-  color: var(--acento);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.item-lateral:hover, .item-lateral[aria-current="true"] { background: var(--lateral-ativo); color: #ffffff; }
+.item-lateral[aria-current="true"]::before {
+  content: ""; position: absolute; left: -11px; top: 10px; bottom: 10px;
+  width: 3px; border-radius: 0 3px 3px 0; background: #ffffff;
 }
-.topo-sub {
-  margin: 0; font-size: 12.5px; letter-spacing: .01em; color: var(--texto-3);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.item-lateral svg { width: 20px; height: 20px; }
+.item-lateral:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+/* rotulo do item: dica ao passar o mouse ou focar; o nome acessivel vem do aria-label */
+.dica-lateral {
+  position: absolute; left: calc(100% + 12px); top: 50%;
+  transform: translate(-4px, -50%);
+  padding: 5px 9px; border-radius: 6px; white-space: nowrap;
+  background: var(--dica-fundo); color: var(--dica-texto);
+  font-size: 12px; line-height: 1.35; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+  opacity: 0; transition: opacity 120ms ease, transform 120ms ease;
 }
-/* entrada do cabecalho: so opacidade e deslocamento, ate 460 ms */
-.marca { animation: marca-entrar 380ms cubic-bezier(.22,1,.36,1) both; }
-.topo h1, .topo-sub { animation: texto-entrar 380ms cubic-bezier(.22,1,.36,1) both; }
-.topo h1 { animation-delay: 40ms; }
-.topo-sub { animation-delay: 80ms; }
-@keyframes marca-entrar { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
-@keyframes texto-entrar { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
-.topo-acoes { display: flex; align-items: center; gap: 10px; flex: none; }
+.item-lateral:hover .dica-lateral, .item-lateral:focus-visible .dica-lateral { opacity: 1; transform: translate(0, -50%); }
 
-.status {
-  display: inline-flex; align-items: center; gap: 7px;
-  height: 30px; padding: 0 11px; border-radius: 999px;
-  background: var(--superficie-alta); border: 1px solid var(--borda);
-  font-size: 12px; color: var(--texto-2); white-space: nowrap;
+/* status do modelo: ponto cheio = carregado, ponto vazado = indisponivel
+   (sem verde/vermelho, que sao do nivel de risco) */
+.status-ponto {
+  position: absolute; right: 8px; bottom: 8px;
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 2px solid var(--lateral-icone); background: transparent;
 }
-.status .ponto { width: 7px; height: 7px; border-radius: 50%; background: var(--texto-3); flex: none; }
-.status.ok .ponto    { background: var(--risco-baixo); }
-.status.falha .ponto { background: var(--risco-alto); }
-
-.botao-icone {
-  width: 32px; height: 32px; display: inline-grid; place-items: center;
-  background: transparent; color: var(--texto-2);
-  border: 1px solid var(--borda-controle); border-radius: var(--r-campo); cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
-}
-.botao-icone:hover { background: var(--superficie-alta); color: var(--texto); }
-.botao-icone:active { transform: scale(.96); }
-.botao-icone svg { width: 16px; height: 16px; }
+.status.ok .status-ponto { background: #ffffff; border-color: #ffffff; }
+.status.falha .status-ponto { border-style: dashed; }
 .icone-sol, [data-theme="dark"] .icone-lua { display: none; }
 [data-theme="dark"] .icone-sol { display: block; }
 
-.principal {
+/* ------------------------------- conteudo ------------------------------- */
+.conteudo { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.conteudo > * { flex: none; }
+
+/* faixa de cabecalho em cor solida; os indicadores sobrepoem a borda de baixo */
+.faixa {
+  --sobreposicao: clamp(30px, 4.6vh, 46px);
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: clamp(8px, calc(3vh - 8px), 28px) 24px calc(var(--sobreposicao) + clamp(8px, 1.4vh, 22px));
+  background: var(--faixa); color: var(--faixa-texto);
+}
+.faixa-textos { min-width: 0; }
+/* titulo: 2,5x a 3,5x o texto base (13px), crescendo linearmente entre 1280 e 1920 px */
+.titulo {
+  margin: 0;
+  font-size: clamp(32.5px, calc(6.5px + 2.03125vw), 45.5px);
+  line-height: 1; letter-spacing: .03em; white-space: nowrap;
+}
+.subtitulo { margin: clamp(3px, .6vh, 7px) 0 0; font-size: 13px; color: var(--faixa-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.faixa-acoes { flex: none; display: flex; gap: 10px; }
+
+.botao {
+  height: clamp(36px, 5vh, 44px); min-width: 9.5rem; padding: 0 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-campo); border: 1px solid var(--botao-borda);
+  background: var(--botao); color: var(--botao-texto);
+  font: inherit; font-size: 14px; font-weight: 700; letter-spacing: .06em; cursor: pointer;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+.botao:hover { background: var(--botao-hover); }
+.botao:active { background: var(--botao-ativo); transform: translateY(1px); }
+/* desabilitado durante CLASSIFICANDO…: tom mais palido, sem opacidade, texto AA */
+.botao[disabled] { cursor: progress; background: var(--botao-desabilitado); transform: none; }
+/* foco: anel duplo, escuro colado ao botao e branco por fora */
+.faixa .botao:focus-visible { outline: 2px solid var(--faixa-foco); outline-offset: 2px; box-shadow: 0 0 0 2px var(--faixa-foco-in); }
+/* CLASSIFICAR e CLASSIFICANDO… ocupam a mesma celula: a largura do botao e
+   sempre a do rotulo mais longo */
+.botao-rotulo { display: inline-grid; justify-items: center; }
+.botao-rotulo > span { grid-area: 1 / 1; }
+.botao-reserva { visibility: hidden; }
+.botao-secundario {
+  min-width: 0; padding: 0 16px;
+  background: transparent; color: var(--faixa-texto); border-color: var(--faixa-sub);
+  font-weight: 500; letter-spacing: normal;
+}
+.botao-secundario:hover { background: var(--faixa-hover); }
+.botao-secundario:active { background: var(--faixa-hover); }
+
+/* ----------------------------- indicadores ----------------------------- */
+.indicadores {
+  position: relative; z-index: 2;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+  margin-top: calc(-1 * clamp(30px, 4.6vh, 46px));
+  padding: 0 24px;
+}
+.indicador {
+  min-width: 0;
+  padding: clamp(7px, 1.3vh, 16px) 16px;
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--r-cartao);
+}
+.indicador-rotulo { display: block; font-size: 12px; color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.indicador-linha { display: flex; align-items: center; gap: 10px; min-height: clamp(26px, 4.2vh, 44px); }
+.indicador-valor {
+  font-size: clamp(22px, 3.4vh, 36px); line-height: 1.1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.indicador-valor small { font-size: 13px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 400; color: var(--texto-3); margin-left: 3px; }
+.indicador-nota { display: block; font-size: 12px; color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vazio-traco { color: var(--texto-3); }
+
+/* selo da classe: os selos de variacao do kit viram o nivel de risco */
+.selo {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 9px;
+  border-radius: 999px; background: var(--nivel); color: var(--selo-texto);
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.selo-grande { height: auto; padding: 3px 13px; font-size: clamp(15px, 2.2vh, 24px); line-height: 1.2; }
+
+/* --------------------------------- corpo -------------------------------- */
+.corpo {
   flex: 1 1 auto; min-height: 0;
-  width: 100%; max-width: 1640px; margin: 0 auto;
-  padding: 12px 20px;
-  display: grid;
-  /* resultado com pelo menos a mesma largura da entrada; o piso de 606px da
-     entrada e o que mantem os 12 rotulos inteiros em 4 colunas a 1280px */
-  grid-template-columns: minmax(606px, 1fr) minmax(0, 1.08fr);
-  gap: 12px;
+  display: grid; gap: clamp(10px, 1.5vh, 14px); padding: clamp(10px, 1.5vh, 14px) 24px;
+  grid-template-columns: minmax(606px, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: "form resultado" "registro resultado";
 }
-
-.rodape {
-  padding: 8px 20px;
-  border-top: 1px solid var(--borda);
-  background: var(--superficie);
-  font-size: 11.5px; color: var(--texto-3); line-height: 1.5;
-}
-.rodape-conteudo { max-width: 1600px; margin: 0 auto; }
-.rodape a { color: var(--acento); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
-.rodape a:hover { text-decoration-thickness: 2px; }
-
-/* ------------------------------- cartoes -------------------------------- */
 .cartao {
-  background: var(--superficie);
-  border: 1px solid var(--borda);
-  border-radius: var(--r-bloco);
-  box-shadow: var(--sombra);
-  min-height: 0;
+  min-height: 0; min-width: 0;
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--r-cartao);
 }
-.cartao-cabeca {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 16px 0;
-}
-.cartao-titulo {
-  margin: 0; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2);
-}
-.cartao-nota { font-size: 11.5px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
-
-/* ------------------------------- entrada -------------------------------- */
-/* espacamentos e alturas acompanham a altura da tela: compactos em 720px,
-   mais folgados em 1080px, sem que o formulario deixe de caber */
-.entrada { display: flex; flex-direction: column; padding: 12px 14px 14px; gap: clamp(12px, 2.6vh, 30px); }
-
-.perfis-linha { display: flex; flex-direction: column; gap: 6px; }
+.cartao-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cartao-titulo { margin: 0; font-size: 15px; line-height: 1.25; color: var(--texto); letter-spacing: .005em; }
+.cartao-nota { font-size: 12px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
 .rotulo-secao {
   margin: 0; font-size: 11px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2);
 }
-.segmentos {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 3px; gap: 3px;
-  background: var(--superficie-alta); border: 1px solid var(--borda); border-radius: var(--r-campo);
+/* destaque breve quando a navegacao lateral leva a uma area */
+.realcado { outline: 2px solid var(--acento); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
+[tabindex="-1"].realcado:focus { outline: 2px solid var(--acento); }
+
+/* ------------------------------- formulario ----------------------------- */
+.entrada {
+  grid-area: form;
+  display: flex; flex-direction: column; gap: clamp(10px, calc(4vh - 18px), 28px);
+  padding: clamp(12px, 1.8vh, 18px) 16px;
 }
+.perfis { display: flex; flex-wrap: wrap; gap: 8px; }
 .perfil {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  height: clamp(32px, 4.4vh, 40px); padding: 0 10px; min-width: 0;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: clamp(30px, 4.2vh, 38px); padding: 0 13px;
+  border: 1px solid var(--borda-controle); border-radius: 999px;
   background: transparent; color: var(--texto-2);
-  border: 1px solid transparent; border-radius: 7px;
   font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
   transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
-.perfil:hover { color: var(--texto); background: var(--superficie); }
-/* o segmento ativo leva a cor do proprio nivel na borda: a cinza neutra nao
-   chegava a 3:1 sobre o fundo do grupo */
-.perfil[aria-pressed="true"] {
-  background: var(--superficie); color: var(--texto);
-  border-color: var(--nivel); box-shadow: var(--sombra);
-}
+.perfil:hover { background: var(--superficie-alta); color: var(--texto); }
+.perfil[aria-pressed="true"] { border-color: var(--nivel); box-shadow: inset 0 0 0 1px var(--nivel); background: var(--superficie-alta); color: var(--texto); }
 .perfil .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--nivel); }
 .perfil .id { font-size: 11px; font-weight: 400; color: var(--texto-3); font-variant-numeric: tabular-nums; }
 
-.secoes { display: flex; flex-direction: column; gap: clamp(10px, 3.4vh, 40px); }
-.secao { display: flex; flex-direction: column; gap: 7px; }
-.grade-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px 8px; }
-
-.campo { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.campo label {
-  font-size: 12px; color: var(--texto-2);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+/* as secoes ocupam a altura livre do cartao e se distribuem nela; em telas
+   baixas sobra so o espaco minimo */
+.secoes { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; gap: clamp(10px, calc(5vh - 26px), 36px); }
+.secao { border: 0; margin: 0; padding: 0; min-width: 0; }
+.secao legend { padding: 0; margin-bottom: 5px; }
+.grade-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.campo { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.campo label { font-size: 12px; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .campo input {
-  width: 100%; height: clamp(34px, 4.8vh, 44px); padding: 0 8px;
+  width: 100%; height: clamp(30px, 4.4vh, 42px); padding: 0 9px;
   background: var(--campo); color: var(--texto);
   border: 1px solid var(--borda-controle); border-radius: var(--r-campo);
   font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
@@ -268,14 +326,12 @@ html.trocando-tema, html.trocando-tema * {
 }
 .campo input:hover { border-color: var(--texto-3); }
 .campo input:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-anel); }
-.campo input[aria-invalid="true"] { border-color: var(--risco-alto); }
-
-/* dica: tooltip ao focar ou passar o mouse, nunca fixa; tambem ligada ao
-   campo por aria-describedby, para leitor de tela */
+/* invalido: borda dupla na cor do texto (vermelho e so do nivel de risco) */
+.campo input[aria-invalid="true"] { border-color: var(--texto); box-shadow: 0 0 0 1px var(--texto); }
+/* dica: so ao focar ou passar o mouse; ligada ao campo por aria-describedby */
 .dica {
   position: absolute; left: 0; top: calc(100% + 6px); z-index: 30;
-  width: max(100%, 230px);
-  padding: 7px 9px; border-radius: 7px;
+  width: max(100%, 230px); padding: 7px 9px; border-radius: 7px;
   background: var(--dica-fundo); color: var(--dica-texto);
   font-size: 11.5px; line-height: 1.45;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
@@ -286,314 +342,288 @@ html.trocando-tema, html.trocando-tema * {
 .grade-campos .campo:nth-child(4n-1) .dica { left: auto; right: 0; }
 .campo:hover .dica, .campo:focus-within .dica { opacity: 1; transform: none; }
 
-.acoes {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: auto; padding-top: 2px;
-}
-.botao {
-  height: clamp(36px, 5vh, 44px); min-width: 9.5rem; padding: 0 18px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--acento); color: var(--acento-texto);
-  border: 1px solid var(--acento); border-radius: var(--r-campo);
-  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: filter 120ms ease, transform 120ms ease;
-}
-.botao:hover { filter: brightness(1.08); }
-.botao:active { transform: translateY(1px); }
-.botao[disabled] { cursor: progress; opacity: .75; }
-.botao-secundario {
-  min-width: 0; background: transparent; color: var(--texto-2);
-  border-color: var(--borda-controle); font-weight: 500;
-}
-.botao-secundario:hover { color: var(--texto); background: var(--superficie-alta); filter: none; }
-
-/* foco visivel em tudo que recebe teclado */
-.perfil:focus-visible, .botao:focus-visible, .botao-icone:focus-visible,
-.rodape a:focus-visible, .registro-corpo:focus-visible {
+.perfil:focus-visible, .rodape a:focus-visible, .registro-corpo:focus-visible {
   outline: 2px solid var(--acento); outline-offset: 2px;
 }
 
-/* ------------------------------- direita -------------------------------- */
-.coluna-direita { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-
-/* o resultado ocupa toda a altura que o registro (fixo em 3 linhas) deixa */
-.cartao-resultado {
-  position: relative;
-  flex: 1 1 auto; min-height: 0;
-  display: flex; flex-direction: column;
-  --glow: transparent;
-}
-/* borda que acende na cor da classe quando o resultado chega */
-.cartao-resultado::after {
-  content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
-  border: 1px solid var(--glow);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow) 16%, transparent),
-              0 0 22px -6px var(--glow);
-  opacity: 0;
-}
-.cartao-resultado.aceso::after { animation: acender 1100ms cubic-bezier(.22,1,.36,1) forwards; }
-@keyframes acender { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: .55; } }
-
+/* ------------------------------- resultado ------------------------------ */
+.cartao-resultado { grid-area: resultado; display: flex; flex-direction: column; }
+.cartao-resultado > .cartao-cabeca { padding: 12px 18px 0; }
 .resultado-corpo {
   flex: 1 1 auto; min-height: 0; overflow: auto;
   display: flex; flex-direction: column;
-  padding: clamp(6px, 1.4vh, 16px) clamp(16px, 1.5vw, 26px) clamp(14px, 2vh, 22px);
+  padding: 8px clamp(16px, 1.6vw, 28px) clamp(14px, 2vh, 22px);
 }
-/* centraliza na altura que sobrar; margem automatica (e nao justify-content)
-   para que, se o conteudo crescer, ele role em vez de ser cortado no topo */
+/* centraliza na altura que sobrar; margem automatica para rolar, e nao cortar,
+   se o conteudo crescer */
 .resultado-corpo > * { margin-block: auto; }
-
-.vazio {
-  display: flex; align-items: center; gap: 22px;
-  padding: clamp(14px, 4vh, 48px) 4px 10px; color: var(--texto-2); font-size: 14px; line-height: 1.55;
-}
-.vazio svg { width: clamp(160px, 22vh, 240px); flex: none; }
-.vazio strong { color: var(--texto); font-weight: 600; }
 
 .resultado-topo {
   display: grid; grid-template-columns: auto minmax(0, 1fr);
-  gap: clamp(18px, 2vw, 36px); align-items: center;
+  gap: clamp(18px, 2.2vw, 40px); align-items: center;
 }
-/* o medidor cresce com a altura da tela; o numero acompanha a largura dele */
-.medidor { width: clamp(240px, calc(54vh - 150px), 400px); container-type: inline-size; }
-.medidor-arte { position: relative; }
-.medidor svg { display: block; width: 100%; height: auto; overflow: visible; }
-/* numero e legendas em HTML, por cima do arco: no SVG eles encolheriam junto
-   com o medidor e ficariam ilegiveis */
-.medidor-centro {
-  position: absolute; left: 18%; right: 18%; bottom: 4%;
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; line-height: 1.2; pointer-events: none;
+.anel-bloco { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.anel { position: relative; width: clamp(150px, calc(46vh - 180px), 290px); container-type: inline-size; }
+.anel svg { display: block; width: 100%; height: auto; }
+.anel-trilha { fill: none; stroke: var(--trilha); stroke-width: 14; }
+.anel-arco {
+  fill: none; stroke: var(--nivel, var(--trilha)); stroke-width: 14; stroke-linecap: round;
+  transition: stroke-dashoffset 900ms cubic-bezier(.22,1,.36,1);
 }
-
-.zona { fill: none; stroke-width: 18; transition: opacity 200ms ease; }
-.zona-baixo { stroke: var(--risco-baixo); }
-.zona-medio { stroke: var(--risco-medio); }
-.zona-alto  { stroke: var(--risco-alto); }
-.zona-apagada { opacity: .28; }
-.vazio .zona { opacity: .3; }
-
-.marcador {
-  transform-box: view-box; transform-origin: 170px 170px;
-  transform: rotate(-90deg);
-  transition: transform 900ms cubic-bezier(.22,1,.36,1);
+.anel-marca { stroke: var(--texto-3); stroke-width: 1.5; stroke-linecap: round; }
+.anel-marca.maior { stroke-width: 2.2; }
+.anel-centro {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; pointer-events: none;
 }
-.marcador-anel { fill: var(--superficie); }
-.marcador-ponto { fill: var(--texto); }
+.anel-valor { font-size: clamp(36px, 25cqi, 76px); line-height: 1; font-variant-numeric: tabular-nums; }
+.anel-legenda { margin-top: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--texto-2); }
+.anel-nota { font-size: 11.5px; color: var(--texto-3); text-align: center; }
 
-.medidor-valor {
-  font-size: clamp(48px, 21cqi, 84px); font-weight: 650; line-height: .95;
-  letter-spacing: -.03em; font-variant-numeric: tabular-nums;
-}
-.medidor-legenda { margin-top: 5px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-2); }
-/* a nota fica sob o arco: dentro dele disputaria espaco com o numero */
-.medidor-nota { margin-top: 3px; font-size: 11.5px; line-height: 1.3; color: var(--texto-3); text-align: center; }
-.cor-baixo { fill: var(--risco-baixo); color: var(--risco-baixo); }
-.cor-medio { fill: var(--risco-medio); color: var(--risco-medio); }
-.cor-alto  { fill: var(--risco-alto);  color: var(--risco-alto); }
-
-.zonas-rotulos {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  margin-top: 2px; font-size: 12px; color: var(--texto-3); text-align: center;
-}
-.zonas-rotulos .ativa { color: var(--texto); font-weight: 600; }
-
-.veredito .classe { font-size: clamp(30px, 4.4vh, 46px); font-weight: 650; letter-spacing: -.02em; line-height: 1.05; }
-.veredito .prob-classe { margin-top: 5px; font-size: 14px; color: var(--texto-2); font-variant-numeric: tabular-nums; }
-
-.probabilidades { margin-top: clamp(14px, 2.4vh, 26px); display: flex; flex-direction: column; gap: clamp(9px, 1.3vh, 14px); }
-.prob { display: grid; grid-template-columns: 92px minmax(0, 1fr) 54px; align-items: center; gap: 12px; }
-.prob .nome { font-size: 13px; color: var(--texto-2); }
-.prob .trilha { height: 12px; background: var(--trilha); border-radius: 6px; overflow: hidden; }
-.prob .barra {
-  height: 100%; width: 100%; border-radius: 6px;
-  transform: scaleX(0); transform-origin: left center;
-  transition: transform 700ms cubic-bezier(.22,1,.36,1);
-}
+.probabilidades { display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 16px); }
+.prob { display: grid; grid-template-columns: 104px minmax(0, 1fr) 54px; align-items: center; gap: 12px; }
+.prob .nome { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--texto-2); }
+.prob .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.prob .trilha { height: 8px; background: var(--trilha); border-radius: 4px; overflow: hidden; }
+.prob .barra { height: 100%; border-radius: 4px; }
 .prob .valor { font-size: 13.5px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-.barra-baixo { background: var(--risco-baixo); }
-.barra-medio { background: var(--risco-medio); }
-.barra-alto  { background: var(--risco-alto); }
 
-/* filete esquerdo na cor do nivel: liga a acao a classe sem mais um bloco colorido */
 .intervencao {
-  margin-top: clamp(14px, 2.6vh, 28px); padding: clamp(12px, 1.8vh, 18px) clamp(14px, 1.4vw, 20px);
-  background: var(--superficie-alta); border: 1px solid var(--borda); border-radius: var(--r-campo);
-  border-left: 4px solid var(--nivel, var(--borda));
+  margin-top: clamp(14px, 2.6vh, 28px);
+  padding: clamp(12px, 1.8vh, 18px) clamp(14px, 1.4vw, 20px);
+  background: var(--superficie-alta); border: 1px solid var(--borda); border-left: 4px solid var(--nivel);
+  border-radius: var(--r-campo);
 }
 .intervencao-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.intervencao .rotulo { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2); }
-.intervencao-codigo {
-  font-size: 11.5px; color: var(--texto-2); letter-spacing: .02em;
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-}
-.intervencao .texto { margin-top: 7px; font-size: 14px; line-height: 1.55; color: var(--texto); max-width: 68ch; }
+.intervencao-codigo { font-size: 11.5px; color: var(--texto-2); font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.intervencao .texto { margin-top: 7px; font-size: 14px; line-height: 1.55; color: var(--texto); max-width: 70ch; }
 .acoes-lista { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .acao-chip {
-  font-size: 11.5px; padding: 3px 8px; border-radius: var(--r-mini);
+  font-size: 11.5px; padding: 3px 8px; border-radius: 5px;
   background: var(--superficie); border: 1px solid var(--borda); color: var(--texto-2);
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
+.vazio { display: flex; align-items: center; gap: 24px; color: var(--texto-2); font-size: 14px; line-height: 1.55; }
+.vazio p { margin: 0; max-width: 34ch; }
+.vazio strong { color: var(--texto); }
+
 .avisos { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-.avisos-titulo { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2); }
 .aviso {
   padding: 7px 10px; border-radius: var(--r-campo);
-  background: var(--superficie-alta); border: 1px solid var(--risco-medio);
-  font-size: 12px; color: var(--texto); line-height: 1.45;
+  background: var(--superficie-alta); border: 1px solid var(--borda-controle);
+  font-size: 12px; line-height: 1.45;
 }
-
 .erro {
-  margin-top: 6px; padding: 11px 13px; border-radius: var(--r-campo);
-  background: var(--superficie-alta); border: 1px solid var(--risco-alto);
-  font-size: 12.5px; color: var(--texto); line-height: 1.5;
+  padding: 12px 14px; border-radius: var(--r-campo);
+  background: var(--superficie-alta); border: 1px solid var(--borda-controle); border-left: 4px solid var(--acento);
+  font-size: 13px; line-height: 1.5;
 }
-.erro .rotulo { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2); }
-
-.surgir { animation: surgir 320ms cubic-bezier(.22,1,.36,1) both; }
-@keyframes surgir { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.erro .rotulo-secao { display: block; margin-bottom: 4px; }
 
 /* ------------------------------- registro ------------------------------- */
-/* secundario: altura fixa para o cabecalho da tabela + 3 linhas; o resto rola */
 .cartao-registro {
-  --reg-cab: 24px; --reg-linha: 27px;
-  flex: none; display: flex; flex-direction: column; overflow: hidden;
+  grid-area: registro;
+  --reg-cab: 24px; --reg-linha: 26px;
+  display: flex; flex-direction: column; overflow: hidden;
 }
-.cartao-registro .cartao-cabeca { padding: 9px 14px 0; }
-.registro-corpo {
-  flex: none; height: calc(var(--reg-cab) + 3 * var(--reg-linha));
-  overflow: auto; margin-top: 5px;
-}
-.registro-tabela { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.cartao-registro > .cartao-cabeca { padding: 10px 16px 0; }
+.registro-corpo { flex: none; height: calc(var(--reg-cab) + 3 * var(--reg-linha)); overflow: auto; margin-top: 6px; }
+.registro-tabela { width: 100%; border-collapse: collapse; font-size: 12px; }
 .registro-tabela th {
-  position: sticky; top: 0; z-index: 1;
-  background: var(--superficie);
-  text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--texto-2); padding: 0 10px; height: var(--reg-cab); border-bottom: 1px solid var(--borda);
+  position: sticky; top: 0; z-index: 1; background: var(--superficie);
+  height: var(--reg-cab); padding: 0 10px; text-align: left;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-2);
+  border-bottom: 1px solid var(--borda);
 }
-.registro-tabela th:first-child, .registro-tabela td:first-child { padding-left: 14px; }
-.registro-tabela th:last-child, .registro-tabela td:last-child { padding-right: 14px; }
-.registro-tabela th.num, .registro-tabela td.num { text-align: right; }
-.registro-tabela td { padding: 0 10px; height: var(--reg-linha); border-bottom: 1px solid var(--borda); white-space: nowrap; }
+.registro-tabela td { height: var(--reg-linha); padding: 0 10px; border-bottom: 1px solid var(--borda); white-space: nowrap; }
+.registro-tabela th:first-child, .registro-tabela td:first-child { padding-left: 16px; }
+.registro-tabela th:last-child, .registro-tabela td:last-child { padding-right: 16px; }
+.registro-tabela .direita { text-align: right; }
 .registro-linha { transition: background-color 120ms ease; }
 .registro-linha:hover { background: var(--superficie-alta); }
-.registro-hora { color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.registro-hora, .registro-prob { font-variant-numeric: tabular-nums; }
+.registro-hora { color: var(--texto-2); }
 .registro-classe { display: inline-flex; align-items: center; gap: 7px; }
-.registro-ponto { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-.registro-prob { font-variant-numeric: tabular-nums; }
+.registro-ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .registro-acao { color: var(--texto-2); max-width: 1px; width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.registro-vazio { margin: 0; padding: 10px 14px; font-size: 12px; color: var(--texto-2); }
+.registro-vazio { margin: 0; padding: 10px 16px; font-size: 12px; color: var(--texto-2); }
+
+/* -------------------------------- rodape -------------------------------- */
+.rodape {
+  padding: 5px 24px 6px; border-top: 1px solid var(--borda);
+  font-size: 11.5px; line-height: 1.45; color: var(--texto-3);
+}
+.rodape p { margin: 0; }
+.rodape a { color: var(--acento); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
 
 /* ------------------------- telas estreitas -------------------------
-   Abaixo de 1040px as areas empilham e a pagina rola normalmente. */
+   Abaixo de 1040px a barra lateral vira faixa superior e a pagina rola. */
 @media (max-width: 1039.98px) {
-  .app { height: auto; min-height: 100dvh; overflow: visible; }
-  .principal { grid-template-columns: 1fr; }
-  .cartao-registro { flex: none; min-height: 0; }
-  .registro-corpo { max-height: 260px; }
-  .topo-sub { display: none; }
+  .app { display: block; height: auto; min-height: 100dvh; overflow: visible; }
+  .lateral { flex-direction: row; padding: 8px 16px; gap: 6px; }
+  .marca { margin: 0 12px 0 0; }
+  .navegacao { flex-direction: row; }
+  .lateral-base { margin: 0 0 0 auto; flex-direction: row; }
+  .item-lateral[aria-current="true"]::before { left: 10px; right: 10px; top: auto; bottom: -8px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
+  .dica-lateral { left: 50%; top: calc(100% + 10px); transform: translate(-50%, -4px); }
+  .item-lateral:hover .dica-lateral, .item-lateral:focus-visible .dica-lateral { transform: translate(-50%, 0); }
+  .lateral-base .dica-lateral { left: auto; right: 0; transform: translate(0, -4px); }
+  .lateral-base .item-lateral:hover .dica-lateral, .lateral-base .item-lateral:focus-visible .dica-lateral { transform: none; }
+  .conteudo { overflow: visible; }
+  .faixa { flex-wrap: wrap; }
+  .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .corpo { grid-template-columns: 1fr; grid-template-areas: "form" "resultado" "registro"; grid-template-rows: auto; }
 }
 @media (max-width: 620px) {
-  .topo h1 { font-size: 21px; }
-  .marca { width: 32px; border-radius: 9px; }
+  .titulo { font-size: 30px; }
+  .subtitulo { white-space: normal; }
+  .indicadores, .corpo, .faixa, .rodape { padding-left: 14px; padding-right: 14px; }
   .grade-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grade-campos .campo:nth-child(4n) .dica, .grade-campos .campo:nth-child(4n-1) .dica { left: 0; right: auto; }
   .grade-campos .campo:nth-child(2n) .dica { left: auto; right: 0; }
-  .resultado-topo { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .resultado-topo { grid-template-columns: 1fr; justify-items: center; }
+  .resultado-probs { justify-self: stretch; }
+  .indicador-nota { white-space: normal; }
   .perfil .id { display: none; }
-  .status-texto { display: none; }
 }
 
 /* ------------------------- movimento reduzido ------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
-  .cartao-resultado.aceso::after { opacity: .55; }
 }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <header class="topo" aria-label="PARCUS — Painel de Risco Comportamental do Usuário">
-    <div class="topo-marca">
-      <span class="marca" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6 4.6 5.4v5.9c0 4.5 3.1 8.2 7.4 9.9 4.3-1.7 7.4-5.4 7.4-9.9V5.4z"></path><path d="M7.4 12.4h2.3l1.5-2.9 2.3 5.4 1.5-2.5h1.6"></path></svg>
-      </span>
-      <div class="topo-textos">
-        <h1>PARCUS</h1>
-        <p class="topo-sub">Painel de Risco Comportamental do Usuário</p>
-      </div>
+  <!-- --------------------------- barra lateral --------------------------- -->
+  <nav class="lateral" aria-label="Navegação do painel">
+    <svg class="marca" viewBox="0 0 38 38" aria-hidden="true">
+      <rect width="38" height="38" rx="10" fill="var(--marca)"></rect>
+      <path d="M14 28V10h6.6a5.9 5.9 0 0 1 0 11.8H14" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+    <div class="navegacao">
+      <a class="item-lateral" href="#formulario" data-alvo="formulario" aria-label="Classificar" aria-current="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"></path><circle cx="15" cy="7" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
+        <span class="dica-lateral" aria-hidden="true">Classificar</span>
+      </a>
+      <a class="item-lateral" href="#registro" data-alvo="registro" aria-label="Registro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>
+        <span class="dica-lateral" aria-hidden="true">Registro</span>
+      </a>
+      <a class="item-lateral" href="#sobre" data-alvo="sobre" aria-label="Sobre o modelo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 11v5.5M12 7.6v.1"></path></svg>
+        <span class="dica-lateral" aria-hidden="true">Sobre o modelo</span>
+      </a>
     </div>
-    <div class="topo-acoes">
-      <div class="status" id="status" role="status">
-        <span class="ponto" aria-hidden="true"></span><span class="status-texto" id="status-texto">verificando modelo…</span>
-      </div>
-      <button class="botao-icone" type="button" id="botao-tema" aria-label="Ativar tema escuro" title="Ativar tema escuro">
-        <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
-        <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <div class="lateral-base">
+      <button class="item-lateral" type="button" id="botao-tema" aria-label="Ativar tema escuro">
+        <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.6 6.6 0 0 0 9.5 9.5z"></path></svg>
+        <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span class="dica-lateral" id="tema-dica" aria-hidden="true">Ativar tema escuro</span>
       </button>
+      <div class="item-lateral status" id="status" role="status" tabindex="0" aria-labelledby="status-texto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 5 12 2.5-6H21"></path></svg>
+        <span class="status-ponto" aria-hidden="true"></span>
+        <span class="dica-lateral" id="status-texto">verificando modelo…</span>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="principal">
+  <div class="conteudo">
 
-    <!-- ------------------------------ entrada ------------------------------ -->
-    <!-- campos de texto com inputmode="decimal", e nao type="number": o campo
-         numerico depende do idioma do navegador e, em ingles, descarta a virgula
-         digitada. A leitura do numero e feita por lerNumero(); a validacao de
-         dominio continua na API. -->
-    <form class="cartao entrada" id="formulario" autocomplete="off" novalidate aria-labelledby="titulo-entrada">
-      <h2 class="cartao-titulo" id="titulo-entrada" hidden>Variáveis do apostador</h2>
-
-      <div class="perfis-linha">
-        <p class="rotulo-secao" id="rotulo-perfis">Perfis de exemplo · usuários reais da base</p>
-        <div class="segmentos" id="perfis" role="group" aria-labelledby="rotulo-perfis"></div>
+    <!-- --------------------------- faixa ------------------------------- -->
+    <header class="faixa" aria-label="PARCUS — Painel de Risco Comportamental do Usuário">
+      <div class="faixa-textos">
+        <h1 class="titulo titulo-fonte">PARCUS</h1>
+        <p class="subtitulo">Painel de Risco Comportamental do Usuário</p>
       </div>
-
-      <div class="secoes">
-        <fieldset class="secao" style="border:0;margin:0;padding:0;min-width:0">
-          <legend class="rotulo-secao" style="padding:0;margin-bottom:7px">Volume e frequência</legend>
-          <div class="grade-campos" id="grupo-volume"></div>
-        </fieldset>
-        <fieldset class="secao" style="border:0;margin:0;padding:0;min-width:0">
-          <legend class="rotulo-secao" style="padding:0;margin-bottom:7px">Valores e perdas</legend>
-          <div class="grade-campos" id="grupo-valores"></div>
-        </fieldset>
-        <fieldset class="secao" style="border:0;margin:0;padding:0;min-width:0">
-          <legend class="rotulo-secao" style="padding:0;margin-bottom:7px">Padrão temporal</legend>
-          <div class="grade-campos" id="grupo-temporal"></div>
-        </fieldset>
-      </div>
-
-      <div class="acoes">
-        <button class="botao" type="submit" id="botao-classificar">Classificar</button>
+      <div class="faixa-acoes">
         <button class="botao botao-secundario" type="button" id="botao-restaurar">Restaurar medianas</button>
+        <button class="botao" type="submit" form="formulario" id="botao-classificar" aria-label="Classificar"><span class="botao-rotulo"><span id="rotulo-classificar">CLASSIFICAR</span><span class="botao-reserva" aria-hidden="true">CLASSIFICANDO…</span></span></button>
       </div>
-    </form>
+    </header>
 
-    <!-- ------------------------------ direita ------------------------------ -->
-    <div class="coluna-direita">
+    <!-- ------------------------- indicadores --------------------------- -->
+    <section class="indicadores" aria-label="Indicadores da última classificação">
+      <div class="indicador">
+        <span class="indicador-rotulo">Índice de risco</span>
+        <div class="indicador-linha">
+          <span class="indicador-valor titulo-fonte" id="kpi-indice"><span class="vazio-traco">—</span></span>
+          <span id="kpi-indice-selo"></span>
+        </div>
+        <span class="indicador-nota">escala de 0 a 100</span>
+      </div>
+      <div class="indicador">
+        <span class="indicador-rotulo">Classe prevista</span>
+        <div class="indicador-linha" id="kpi-classe"><span class="indicador-valor titulo-fonte vazio-traco">—</span></div>
+        <span class="indicador-nota" id="kpi-classe-nota">aguardando classificação</span>
+      </div>
+      <div class="indicador">
+        <span class="indicador-rotulo">Probabilidade da classe</span>
+        <div class="indicador-linha">
+          <span class="indicador-valor titulo-fonte" id="kpi-prob"><span class="vazio-traco">—</span></span>
+          <span id="kpi-prob-selo"></span>
+        </div>
+        <span class="indicador-nota">maior das três probabilidades</span>
+      </div>
+      <div class="indicador">
+        <span class="indicador-rotulo">Classificações na sessão</span>
+        <div class="indicador-linha">
+          <span class="indicador-valor titulo-fonte" id="kpi-sessao"><span class="vazio-traco">—</span></span>
+        </div>
+        <span class="indicador-nota" id="kpi-sessao-nota">desde que esta página foi aberta</span>
+      </div>
+    </section>
+
+    <!-- ----------------------------- corpo ----------------------------- -->
+    <main class="corpo">
+
+      <!-- campos de texto com inputmode="decimal", e nao type="number": o campo
+           numerico depende do idioma do navegador e, em ingles, descarta a virgula
+           digitada. A leitura do numero e feita por lerNumero(); a validacao de
+           dominio continua na API. -->
+      <form class="cartao entrada" id="formulario" tabindex="-1" autocomplete="off" novalidate aria-labelledby="titulo-entrada">
+        <h2 class="so-leitor" id="titulo-entrada">Variáveis do apostador</h2>
+        <div class="perfis" id="perfis" role="group" aria-label="Perfis de exemplo: usuários reais da base"></div>
+        <div class="secoes">
+          <fieldset class="secao">
+            <legend class="rotulo-secao">Volume e frequência</legend>
+            <div class="grade-campos" id="grupo-volume"></div>
+          </fieldset>
+          <fieldset class="secao">
+            <legend class="rotulo-secao">Valores e perdas</legend>
+            <div class="grade-campos" id="grupo-valores"></div>
+          </fieldset>
+          <fieldset class="secao">
+            <legend class="rotulo-secao">Padrão temporal</legend>
+            <div class="grade-campos" id="grupo-temporal"></div>
+          </fieldset>
+        </div>
+      </form>
+
       <section class="cartao cartao-resultado" id="cartao-resultado" aria-labelledby="titulo-resultado">
         <div class="cartao-cabeca">
-          <h2 class="cartao-titulo" id="titulo-resultado">Resultado</h2>
+          <h2 class="cartao-titulo titulo-fonte" id="titulo-resultado">Resultado</h2>
           <span class="cartao-nota" id="resultado-nota"></span>
         </div>
         <div class="resultado-corpo" id="resultado-conteudo" aria-live="polite"></div>
       </section>
 
-      <section class="cartao cartao-registro" aria-labelledby="titulo-registro">
+      <section class="cartao cartao-registro" id="registro" tabindex="-1" aria-labelledby="titulo-registro">
         <div class="cartao-cabeca">
-          <h2 class="cartao-titulo" id="titulo-registro">Registro de classificação</h2>
+          <h2 class="cartao-titulo titulo-fonte" id="titulo-registro">Registro de classificações</h2>
           <span class="cartao-nota" id="registro-total"></span>
         </div>
         <div class="registro-corpo" id="registro-lista" tabindex="0" aria-label="Últimas classificações"></div>
       </section>
-    </div>
-  </main>
+    </main>
 
-  <footer class="rodape ressalva">
-    <p class="rodape-conteudo">Modelo treinado sobre dados públicos de apostadores de uma operadora europeia, com registros entre 2000 e 2010 (Gray, LaPlante e Shaffer, 2012). Desenvolvido como prova de conceito. A classificação indica padrão de comportamento compatível com risco e não constitui diagnóstico. Os campos iniciam na mediana do conjunto de treino. <a href="https://github.com/luccaschneider/gambling-risk-classifier" target="_blank" rel="noopener">Documentação e limitações do modelo</a></p>
-  </footer>
+    <footer class="rodape" id="sobre" tabindex="-1" aria-label="Sobre o modelo">
+      <p>Modelo treinado sobre dados públicos de apostadores de uma operadora europeia, com registros entre 2000 e 2010 (Gray, LaPlante e Shaffer, 2012). Desenvolvido como prova de conceito. A classificação indica padrão de comportamento compatível com risco e não constitui diagnóstico. Os campos iniciam na mediana do conjunto de treino. <a href="https://github.com/luccaschneider/gambling-risk-classifier" target="_blank" rel="noopener">Documentação e limitações do modelo</a></p>
+    </footer>
+  </div>
 </div>
 
 <script>
@@ -601,9 +631,9 @@ html.trocando-tema, html.trocando-tema * {
 
 /* ------------------------------------------------------------------ dados */
 const NIVEIS = [
-  { chave: "Baixo risco", nome: "Baixo risco", cor: "var(--risco-baixo)", classe: "baixo" },
-  { chave: "Medio risco", nome: "Médio risco", cor: "var(--risco-medio)", classe: "medio" },
-  { chave: "Alto risco",  nome: "Alto risco",  cor: "var(--risco-alto)",  classe: "alto"  },
+  { chave: "Baixo risco", nome: "Baixo risco", curto: "Baixo", cor: "var(--risco-baixo)", classe: "baixo" },
+  { chave: "Medio risco", nome: "Médio risco", curto: "Médio", cor: "var(--risco-medio)", classe: "medio" },
+  { chave: "Alto risco",  nome: "Alto risco",  curto: "Alto",  cor: "var(--risco-alto)",  classe: "alto"  },
 ];
 
 // mediana do conjunto de treino (valor inicial dos campos).
@@ -679,6 +709,7 @@ const semMovimento = () => window.matchMedia && matchMedia("(prefers-reduced-mot
 
 /* ------------------------------------------------------------------- tema */
 const botaoTema = document.getElementById("botao-tema");
+const temaDica = document.getElementById("tema-dica");
 
 function aplicarTema(tema, comTransicao) {
   const raiz = document.documentElement;
@@ -689,7 +720,7 @@ function aplicarTema(tema, comTransicao) {
   raiz.setAttribute("data-theme", tema);
   const proximo = tema === "dark" ? "claro" : "escuro";
   botaoTema.setAttribute("aria-label", `Ativar tema ${proximo}`);
-  botaoTema.title = `Ativar tema ${proximo}`;
+  temaDica.textContent = `Ativar tema ${proximo}`;
 }
 
 aplicarTema(document.documentElement.getAttribute("data-theme") || "light", false);
@@ -708,6 +739,25 @@ if (window.matchMedia) {
     if (!salvo) aplicarTema(e.matches ? "dark" : "light", true);
   });
 }
+
+/* ------------------------------------------------------- navegacao lateral */
+// as tres entradas levam a areas da mesma tela (sem rotas novas): foca a area,
+// marca o item ativo e realca a area por um instante
+const itensNavegacao = document.querySelectorAll(".item-lateral[data-alvo]");
+itensNavegacao.forEach(item => {
+  item.addEventListener("click", evento => {
+    evento.preventDefault();
+    const alvo = document.getElementById(item.dataset.alvo);
+    const telaUnica = window.matchMedia && matchMedia("(min-width: 1040px)").matches;
+    alvo.focus({ preventScroll: telaUnica });
+    if (!telaUnica) alvo.scrollIntoView({ block: "start", behavior: semMovimento() ? "auto" : "smooth" });
+    itensNavegacao.forEach(i => i.removeAttribute("aria-current"));
+    item.setAttribute("aria-current", "true");
+    document.querySelectorAll(".realcado").forEach(el => el.classList.remove("realcado"));
+    alvo.classList.add("realcado");
+    setTimeout(() => alvo.classList.remove("realcado"), 1200);
+  });
+});
 
 /* ------------------------------------------------------- montagem do form */
 function criarCampo([chave, rotulo, , dica]) {
@@ -802,53 +852,62 @@ document.querySelectorAll(".campo input").forEach(campo => {
 
 preencher(MEDIANAS);
 
-/* ------------------------------------------------------------- medidor */
-const CX = 170, CY = 170, RAIO = 126, FOLGA = 2.2;
+/* ------------------------------------------------------------- indicadores */
+const kpi = id => document.getElementById(id);
+const TRACO = `<span class="vazio-traco">—</span>`;
+let classificacoesSessao = 0;
 
-function ponto(angulo, raio) {
-  const rad = (angulo * Math.PI) / 180;
-  return [CX + raio * Math.cos(rad), CY - raio * Math.sin(rad)];
+function selo(nivel, texto, grande) {
+  return `<span class="selo${grande ? " selo-grande" : ""}" style="--nivel:${nivel.cor}">${texto}</span>`;
 }
 
-function arco(de, ate) {
-  const [x1, y1] = ponto(de, RAIO);
-  const [x2, y2] = ponto(ate, RAIO);
-  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${RAIO} ${RAIO} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+function limparIndicadores() {
+  kpi("kpi-indice").innerHTML = TRACO;
+  kpi("kpi-indice-selo").innerHTML = "";
+  kpi("kpi-classe").innerHTML = `<span class="indicador-valor titulo-fonte vazio-traco">—</span>`;
+  kpi("kpi-classe-nota").textContent = "aguardando classificação";
+  kpi("kpi-prob").innerHTML = TRACO;
+  kpi("kpi-prob-selo").innerHTML = "";
 }
 
-function zonasSvg(chaveClasse) {
-  // 3 zonas de 60 graus, da esquerda (180) para a direita (0)
-  return NIVEIS.map((nivel, i) => {
-    const inicio = 180 - i * 60 - (i === 0 ? 0 : FOLGA);
-    const fim = 180 - (i + 1) * 60 + (i === 2 ? 0 : FOLGA);
-    const apagada = chaveClasse && nivel.chave !== chaveClasse ? " zona-apagada" : "";
-    return `<path class="zona zona-${nivel.classe}${apagada}" d="${arco(inicio, fim)}"></path>`;
+function atualizarIndicadores(dados, nivel, valorIndice) {
+  const pClasse = (dados.probabilidades[nivel.chave] ?? 0) * 100;
+  kpi("kpi-indice").innerHTML = `${valorIndice}<small>/100</small>`;
+  kpi("kpi-indice-selo").innerHTML = selo(nivel, nivel.curto);
+  kpi("kpi-classe").innerHTML = selo(nivel, nivel.nome, true);
+  kpi("kpi-classe-nota").textContent = `ação: ${ACAO_LEGIVEL[dados.intervencao.codigo] ?? dados.intervencao.codigo}`;
+  kpi("kpi-prob").textContent = `${decimal(pClasse, 1)}%`;
+  kpi("kpi-prob-selo").innerHTML = selo(nivel, nivel.curto);
+  kpi("kpi-sessao").textContent = String(classificacoesSessao);
+}
+
+/* ------------------------------------------------------------------- anel */
+const RAIO = 78, CIRC = 2 * Math.PI * RAIO;
+
+// anel do indice: trilha, arco na cor da classe e marcas de escala a cada 10
+function anelSvg(nivel) {
+  const marcas = Array.from({ length: 20 }, (_, i) => {
+    const ang = (i / 20) * 2 * Math.PI - Math.PI / 2;
+    const maior = i % 5 === 0;
+    const r1 = 92, r2 = maior ? 99 : 96;
+    const p = r => `${(100 + r * Math.cos(ang)).toFixed(2)} ${(100 + r * Math.sin(ang)).toFixed(2)}`;
+    return `<path class="anel-marca${maior ? " maior" : ""}" d="M ${p(r1)} L ${p(r2)}"></path>`;
   }).join("");
+  const cor = nivel ? ` style="--nivel:${nivel.cor}"` : "";
+  return `
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      ${marcas}
+      <circle class="anel-trilha" cx="100" cy="100" r="${RAIO}"></circle>
+      ${nivel ? `<circle class="anel-arco" id="anel-arco"${cor} cx="100" cy="100" r="${RAIO}"
+                  stroke-dasharray="${CIRC.toFixed(2)}" stroke-dashoffset="${CIRC.toFixed(2)}"
+                  transform="rotate(-90 100 100)"></circle>` : ""}
+    </svg>`;
 }
 
 // indice continuo 0..1: media das probabilidades ponderada pelo nivel
 // usado apenas se a API nao devolver indice_risco; o valor oficial vem do servidor
 function indiceRisco(prob) {
   return (prob["Medio risco"] ?? 0) * 0.5 + (prob["Alto risco"] ?? 0) * 1;
-}
-
-function svgMedidor(indice, nivel) {
-  const valor = (indice * 100).toFixed(0);
-  return `
-  <div class="medidor-arte">
-    <svg viewBox="0 0 340 196" role="img"
-         aria-label="Índice de risco ${valor} de 100, calculado a partir das três probabilidades">
-      ${zonasSvg(nivel.chave)}
-      <g class="marcador" id="marcador">
-        <circle class="marcador-anel" cx="${CX}" cy="${CY - RAIO}" r="11"></circle>
-        <circle class="marcador-ponto" cx="${CX}" cy="${CY - RAIO}" r="7.5"></circle>
-      </g>
-    </svg>
-    <div class="medidor-centro" aria-hidden="true">
-      <span class="medidor-valor cor-${nivel.classe}" id="medidor-valor">0</span>
-      <span class="medidor-legenda">Índice de risco</span>
-    </div>
-  </div>`;
 }
 
 /* ------------------------------------------------------------ resultado */
@@ -865,18 +924,18 @@ function escapar(texto) {
 function mostrarVazio() {
   conteudo.innerHTML = `
     <div class="vazio">
-      <svg viewBox="0 0 340 196" aria-hidden="true">${zonasSvg(null)}</svg>
-      <p style="margin:0">Escolha um perfil de exemplo ou ajuste as variáveis e clique em <strong>Classificar</strong> para ver a posição na escala de risco.</p>
+      <div class="anel">${anelSvg(null)}<div class="anel-centro"><span class="anel-valor titulo-fonte vazio-traco">—</span></div></div>
+      <p>Escolha um perfil de exemplo ou ajuste as variáveis e clique em <strong>Classificar</strong> para ver o índice de risco.</p>
     </div>`;
 }
 
 function mostrarErro(titulo, mensagem) {
   nota.textContent = "";
-  cartaoResultado.classList.remove("aceso");
-  conteudo.innerHTML = `<div class="erro surgir" role="alert"><span class="rotulo">${escapar(titulo)}</span>${escapar(mensagem)}</div>`;
+  limparIndicadores();
+  conteudo.innerHTML = `<div class="erro" role="alert"><span class="rotulo-secao">${escapar(titulo)}</span>${escapar(mensagem)}</div>`;
 }
 
-// conta de 0 ate o valor final, em sincronia com o giro do marcador
+// conta de 0 ate o valor final, em sincronia com o preenchimento do anel
 function contar(el, alvo, duracao) {
   if (semMovimento()) { el.textContent = String(alvo); return; }
   const inicio = performance.now();
@@ -889,58 +948,50 @@ function contar(el, alvo, duracao) {
   requestAnimationFrame(passo);
 }
 
-function acenderBorda(nivel) {
-  cartaoResultado.style.setProperty("--glow", nivel.cor);
-  cartaoResultado.classList.remove("aceso");
-  void cartaoResultado.offsetWidth;     // reinicia a animacao
-  cartaoResultado.classList.add("aceso");
-}
-
 function mostrarResultado(dados) {
   const nivel = NIVEIS.find(n => n.chave === dados.classe_prevista) ?? NIVEIS[0];
   const indice = dados.indice_risco ?? indiceRisco(dados.probabilidades);
   const valorIndice = Math.round(indice * 100);
 
-  const rotulosZonas = NIVEIS.map(n =>
-    `<span class="${n.chave === nivel.chave ? "ativa" : ""}">${n.nome.replace(" risco", "")}</span>`).join("");
-
-  const barras = NIVEIS.map((n, i) => {
+  const barras = NIVEIS.map(n => {
     const p = (dados.probabilidades[n.chave] ?? 0);
     return `
     <div class="prob">
-      <span class="nome">${n.nome}</span>
-      <div class="trilha"><div class="barra barra-${n.classe}" data-alvo="${p}" style="transition-delay:${i * 80}ms"></div></div>
+      <span class="nome"><span class="ponto" style="background:${n.cor}" aria-hidden="true"></span>${n.nome}</span>
+      <div class="trilha"><div class="barra" style="background:${n.cor};width:${(p * 100).toFixed(2)}%"></div></div>
       <span class="valor">${decimal(p * 100, 1)}%</span>
     </div>`;
   }).join("");
 
   const avisos = dados.avisos?.length
     ? `<div class="avisos">
-         <span class="avisos-titulo">Avisos de validação</span>
+         <span class="rotulo-secao">Avisos de validação</span>
          ${dados.avisos.map(a => `<div class="aviso">${escapar(virgulaDecimal(a))}</div>`).join("")}
        </div>`
     : "";
 
   nota.textContent = new Date().toLocaleTimeString("pt-BR");
   conteudo.innerHTML = `
-    <div class="surgir">
+    <div>
       <div class="resultado-topo">
-        <div class="medidor">
-          ${svgMedidor(indice, nivel)}
-          <div class="zonas-rotulos" aria-hidden="true">${rotulosZonas}</div>
-          <div class="medidor-nota" aria-hidden="true">calculado a partir das três probabilidades</div>
-        </div>
-        <div>
-          <div class="veredito">
-            <div class="classe cor-${nivel.classe}">${nivel.nome}</div>
-            <div class="prob-classe">${decimal((dados.probabilidades[nivel.chave] ?? 0) * 100, 1)}% de probabilidade</div>
+        <div class="anel-bloco">
+          <div class="anel" role="img" aria-label="Índice de risco ${valorIndice} de 100, calculado a partir das três probabilidades">
+            ${anelSvg(nivel)}
+            <div class="anel-centro" aria-hidden="true">
+              <span class="anel-valor titulo-fonte" id="medidor-valor" style="color:${nivel.cor}">0</span>
+              <span class="anel-legenda">Índice de risco</span>
+            </div>
           </div>
+          <span class="anel-nota" aria-hidden="true">calculado a partir das três probabilidades</span>
+        </div>
+        <div class="resultado-probs">
+          <h3 class="rotulo-secao" style="margin-bottom:12px">Probabilidades por classe</h3>
           <div class="probabilidades">${barras}</div>
         </div>
       </div>
       <div class="intervencao" style="--nivel:${nivel.cor}">
         <div class="intervencao-cabeca">
-          <span class="rotulo">Intervenção recomendada</span>
+          <span class="rotulo-secao">Intervenção recomendada</span>
           <span class="intervencao-codigo">${escapar(dados.intervencao.codigo)}</span>
         </div>
         <div class="texto">${escapar(dados.intervencao.descricao)}</div>
@@ -951,17 +1002,14 @@ function mostrarResultado(dados) {
       ${avisos}
     </div>`;
 
-  const marcador = document.getElementById("marcador");
-  const angulo = (indice - 0.5) * 180;   // -90 = extremo baixo, +90 = extremo alto
+  classificacoesSessao += 1;
+  atualizarIndicadores(dados, nivel, valorIndice);
 
-  // dois quadros: o primeiro pinta o estado inicial, o segundo dispara as transicoes
+  // dois quadros: o primeiro pinta o anel vazio, o segundo dispara o preenchimento
+  const arco = document.getElementById("anel-arco");
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    marcador.style.transform = `rotate(${angulo.toFixed(2)}deg)`;
-    conteudo.querySelectorAll(".barra").forEach(barra => {
-      barra.style.transform = `scaleX(${barra.dataset.alvo})`;
-    });
+    arco.style.strokeDashoffset = (CIRC * (1 - indice)).toFixed(2);
     contar(document.getElementById("medidor-valor"), valorIndice, 900);
-    acenderBorda(nivel);
   }));
 }
 
@@ -975,6 +1023,7 @@ const ACAO_LEGIVEL = {
 async function carregarRegistros() {
   const lista = document.getElementById("registro-lista");
   const total = document.getElementById("registro-total");
+  const notaSessao = document.getElementById("kpi-sessao-nota");
   try {
     const resposta = await fetch("/registros?limite=8");
     if (!resposta.ok) throw new Error("falha");
@@ -983,6 +1032,9 @@ async function carregarRegistros() {
     total.textContent = dados.total_guardado
       ? `${dados.total_guardado} de até ${dados.limite_tabela} guardadas`
       : "";
+    notaSessao.textContent = dados.total_guardado
+      ? `${dados.total_guardado} guardadas no registro`
+      : "registro ainda vazio";
 
     if (!dados.registros.length) {
       lista.innerHTML = `<p class="registro-vazio">Nenhuma classificação registrada ainda.</p>`;
@@ -998,7 +1050,7 @@ async function carregarRegistros() {
         <tr class="registro-linha">
           <td class="registro-hora">${escapar(hora)}</td>
           <td><span class="registro-classe"><span class="registro-ponto" style="background:${nivel.cor}" aria-hidden="true"></span>${nivel.nome}</span></td>
-          <td class="registro-prob num">${decimal(proba, 1)}%</td>
+          <td class="registro-prob direita">${decimal(proba, 1)}%</td>
           <td class="registro-acao" title="${escapar(r.intervencao_codigo)}">${escapar(acao)}</td>
         </tr>`;
     }).join("");
@@ -1007,13 +1059,14 @@ async function carregarRegistros() {
       <table class="registro-tabela">
         <thead><tr>
           <th scope="col">Horário</th><th scope="col">Classe</th>
-          <th scope="col" class="num">Prob.</th><th scope="col">Ação</th>
+          <th scope="col" class="direita">Probabilidade</th><th scope="col">Ação</th>
         </tr></thead>
         <tbody>${linhas}</tbody>
       </table>`;
   } catch {
     lista.innerHTML = `<p class="registro-vazio">Não foi possível carregar o registro.</p>`;
     total.textContent = "";
+    notaSessao.textContent = "registro indisponível";
   }
 }
 
@@ -1049,9 +1102,12 @@ async function verificarSaude() {
 }
 
 const botao = document.getElementById("botao-classificar");
+const rotuloBotao = document.getElementById("rotulo-classificar");
+let classificando = false;   // trava contra envio duplo (clique repetido, Enter num campo)
 
 document.getElementById("formulario").addEventListener("submit", async evento => {
   evento.preventDefault();
+  if (classificando) return;
 
   const corpo = {};
   for (const campo of document.querySelectorAll(".campo input")) {
@@ -1072,8 +1128,10 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
     corpo[campo.name] = valor;
   }
 
+  classificando = true;
+  const focoNoBotao = document.activeElement === botao;
   botao.disabled = true;
-  botao.textContent = "Classificando…";
+  rotuloBotao.textContent = "CLASSIFICANDO…";
   cartaoResultado.setAttribute("aria-busy", "true");
   try {
     const resposta = await fetch("/classificar", {
@@ -1091,9 +1149,11 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
   } catch (erro) {
     mostrarErro("Falha de conexão", "Não foi possível falar com a API. Verifique se o servidor está no ar.");
   } finally {
+    classificando = false;
     botao.disabled = false;
-    botao.textContent = "Classificar";
+    rotuloBotao.textContent = "CLASSIFICAR";
     cartaoResultado.removeAttribute("aria-busy");
+    if (focoNoBotao) botao.focus();   // o botao desabilitado perde o foco; devolve
   }
 });
 
