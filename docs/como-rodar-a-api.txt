@@ -10,9 +10,9 @@ Abrir o terminal na pasta do projeto e instalar as dependências:
 
 Iniciar o servidor
 ------------------
-No terminal, dentro da pasta do projeto:
+No terminal, na raiz da pasta do projeto:
 
-    uvicorn api:app --reload --port 8000
+    uvicorn src.api:app --reload --port 8000
 
 Quando aparecer a mensagem "Application startup complete", está no ar.
 Deixar o terminal aberto — fechar ou apertar Ctrl+C derruba o servidor.
@@ -20,12 +20,13 @@ Deixar o terminal aberto — fechar ou apertar Ctrl+C derruba o servidor.
 
 Acessar no navegador
 --------------------
-Documentação interativa (é aqui que se testa tudo):
+Painel PARCUS (classificação pela interface):
+
+    http://127.0.0.1:8000
+
+Documentação interativa da API (Swagger):
 
     http://127.0.0.1:8000/docs
-
-Atenção: a raiz http://127.0.0.1:8000 retorna 404.
-Isso é esperado — não existe endpoint nesse caminho.
 
 
 Endpoints disponíveis
@@ -33,11 +34,13 @@ Endpoints disponíveis
 POST /classificar   Recebe as 12 variáveis e devolve a classificação
 GET  /saude         Confirma que o modelo está carregado
 GET  /variaveis     Lista as variáveis esperadas, na ordem, com as faixas
+GET  /registros     Últimas classificações registradas (aceita ?limite=N)
 
-Os dois GET podem ser acessados direto pelo navegador:
+Os três GET podem ser acessados direto pelo navegador:
 
     http://127.0.0.1:8000/saude
     http://127.0.0.1:8000/variaveis
+    http://127.0.0.1:8000/registros?limite=8
 
 
 Como testar pelo Swagger
@@ -62,19 +65,19 @@ Se der erro
 
 "address already in use" / porta ocupada
     Já existe um servidor rodando nessa porta.
-    Usar outra: uvicorn api:app --reload --port 8001
+    Usar outra: uvicorn src.api:app --reload --port 8001
     (e trocar 8000 por 8001 nos endereços)
 
 "ModuleNotFoundError"
     Faltou alguma biblioteca. Rodar o pip install novamente.
 
 Erro ao carregar o modelo
-    Verificar se a pasta modelo/ está no mesmo diretório do api.py,
-    com os arquivos xgboost_tunado_comportamental.joblib e metadata.json.
+    Verificar se a pasta modelo/, na raiz do projeto, contém os arquivos
+    xgboost_tunado_comportamental.joblib e metadata.json.
 
 
 Observação
 ----------
 A página /docs não é um arquivo salvo. Ela é gerada pelo FastAPI a cada
-execução, a partir do código em api.py. Para acessá-la novamente basta
+execução, a partir do código em src/api.py. Para acessá-la novamente basta
 repetir os dois passos: subir o servidor e abrir o endereço no navegador.

@@ -2,6 +2,8 @@
 
 **[Demonstração ao vivo](https://gambling-risk-classifier.onrender.com)** — a primeira visita pode levar até um minuto para carregar, porque o serviço gratuito hiberna após um período de inatividade.
 
+![PARCUS — painel de classificação](resultados/painel_novo/alto_1440x900_claro.png)
+
 Modelo de aprendizado de máquina que classifica apostadores em três níveis de risco de comportamento compulsivo — baixo, médio e alto — a partir de doze variáveis comportamentais derivadas do histórico de apostas.
 
 A cada nível corresponde uma intervenção proporcional, do monitoramento padrão ao encaminhamento para equipe de jogo responsável.
@@ -51,7 +53,7 @@ Dois endereços ficam disponíveis:
 - `http://127.0.0.1:8000` — PARCUS, o painel de demonstração
 - `http://127.0.0.1:8000/docs` — documentação interativa da API
 
-O PARCUS traz três perfis de exemplo extraídos do dataset, que preenchem os campos com valores de apostadores reais de cada classe de risco. Os números aparecem com vírgula decimal, e os campos aceitam vírgula ou ponto na digitação; o envio à API usa sempre ponto.
+O PARCUS mostra, numa única tela, o formulário com as doze variáveis, o resultado da classificação e o registro das últimas decisões. Três perfis de exemplo, extraídos do dataset, preenchem os campos com valores de apostadores reais de cada classe de risco, e o botão CLASSIFICAR envia os dados à API. No topo, quatro indicadores resumem a última classificação: índice de risco, classe prevista, probabilidade da classe e número de classificações na sessão. O resultado traz o índice num anel de 0 a 100, as três probabilidades e a intervenção recomendada. Os números aparecem com vírgula decimal, e os campos aceitam vírgula ou ponto na digitação; o envio à API usa sempre ponto. Há tema claro e escuro, que segue a preferência do sistema e pode ser alternado na barra lateral.
 
 ---
 
@@ -160,7 +162,7 @@ A função verifica a presença das doze variáveis, valida os domínios, confer
 ```
 modelo/         Modelo serializado e metadados
 src/            API, função de predição e app Streamlit
-static/         Painel web PARCUS (index.html) e a fonte do título (fonts/, licença OFL)
+static/         Painel web PARCUS (index.html) e a fonte dos títulos (fonts/, licença OFL em static/fonts/LICENSE)
 pipeline/       Preparação dos dados e treino, em ordem de execução
 experimentos/   Scripts dos experimentos de modelagem
 resultados/     Métricas e figuras gerados
@@ -247,4 +249,6 @@ Dados disponibilizados publicamente pelo Transparency Project, Division on Addic
 
 ## Licença
 
-MIT
+O código está sob a licença MIT (arquivo `LICENSE`).
+
+A fonte dos títulos do painel, `static/fonts/parcus-titulo-600.woff2`, é derivada da IBM Plex Sans (Copyright © 2017 IBM Corp.) e distribuída sob a SIL Open Font License 1.1. Como "Plex" é nome reservado e o arquivo é um subconjunto modificado, a família foi renomeada para "PARCUS Titulo". O texto da licença e as modificações estão em `static/fonts/LICENSE`.
