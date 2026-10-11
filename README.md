@@ -18,7 +18,7 @@ A cada nível corresponde uma intervenção proporcional, do monitoramento padr�
 
 ## O que há aqui
 
-Uma API REST para integração, um painel web de demonstração, o modelo treinado e serializado, o pipeline completo de preparação dos dados, e o registro das quatorze etapas de desenvolvimento que levaram à configuração final.
+Uma API REST para integração, um painel web de demonstração (PARCUS — Painel de Risco Comportamental do Usuário), o modelo treinado e serializado, o pipeline completo de preparação dos dados, e o registro das quatorze etapas de desenvolvimento que levaram à configuração final.
 
 A documentação em `docs/` cobre a especificação das variáveis de entrada, as limitações do modelo e o percurso de desenvolvimento.
 
@@ -48,10 +48,10 @@ uvicorn src.api:app --reload --port 8000
 
 Dois endereços ficam disponíveis:
 
-- `http://127.0.0.1:8000` — painel de demonstração
+- `http://127.0.0.1:8000` — PARCUS, o painel de demonstração
 - `http://127.0.0.1:8000/docs` — documentação interativa da API
 
-O painel traz três perfis de exemplo extraídos do dataset, que preenchem os campos com valores de apostadores reais de cada classe de risco.
+O PARCUS traz três perfis de exemplo extraídos do dataset, que preenchem os campos com valores de apostadores reais de cada classe de risco. Os números aparecem com vírgula decimal, e os campos aceitam vírgula ou ponto na digitação; o envio à API usa sempre ponto.
 
 ---
 
@@ -160,7 +160,7 @@ A função verifica a presença das doze variáveis, valida os domínios, confer
 ```
 modelo/         Modelo serializado e metadados
 src/            API, função de predição e app Streamlit
-static/         Painel web
+static/         Painel web PARCUS (index.html) e a fonte do título (fonts/, licença OFL)
 pipeline/       Preparação dos dados e treino, em ordem de execução
 experimentos/   Scripts dos experimentos de modelagem
 resultados/     Métricas e figuras gerados

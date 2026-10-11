@@ -8,7 +8,7 @@ Instalacao:
 Execucao (a partir da raiz do projeto):
     uvicorn src.api:app --reload --port 8000
 
-Painel web do operador (HTML em static/index.html, consome POST /classificar):
+Painel web do operador, PARCUS (HTML em static/index.html, consome POST /classificar):
     http://127.0.0.1:8000/
 
 Documentacao interativa (Swagger UI):
@@ -32,6 +32,7 @@ Exemplo de chamada:
             "media_apostas_por_produto": 850.0
           }'
 """
+import mimetypes
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -57,6 +58,9 @@ app = FastAPI(
 # painel web (HTML estatico que consome POST /classificar via fetch)
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 _PAINEL = _STATIC_DIR / "index.html"
+# a tabela de tipos do Windows/Python nem sempre conhece .woff2 e a fonte do
+# titulo sairia como application/octet-stream; registra o tipo correto
+mimetypes.add_type("font/woff2", ".woff2")
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 registro.iniciar()
