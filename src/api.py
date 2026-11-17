@@ -58,8 +58,8 @@ app = FastAPI(
 # painel web (HTML estatico que consome POST /classificar via fetch)
 _STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 _PAINEL = _STATIC_DIR / "index.html"
-# a tabela de tipos do Windows/Python nem sempre conhece .woff2 e a fonte do
-# titulo sairia como application/octet-stream; registra o tipo correto
+# a tabela de tipos do Windows/Python nem sempre conhece .woff2; registra o
+# tipo correto caso alguma fonte volte a ser servida por /static
 mimetypes.add_type("font/woff2", ".woff2")
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 

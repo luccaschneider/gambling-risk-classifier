@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PARCUS — Painel de Risco Comportamental do Usuário</title>
 <meta name="description" content="PARCUS — Painel de Risco Comportamental do Usuário: classificação de risco em apostas online por XGBoost a partir de 12 variáveis comportamentais.">
-<link rel="preload" href="/static/fonts/parcus-titulo-600.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Atkinson Hyperlegible Next (SIL OFL 1.1), desenhada pelo Braille Institute
+     para leitura facil. Sem rede, cai na fonte do sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 /* Tema aplicado antes da primeira pintura, para nao piscar.
    Ordem: escolha salva pelo usuario > preferencia do sistema. */
@@ -19,473 +23,254 @@
 })();
 </script>
 <style>
-/* Fonte dos titulos: derivada da IBM Plex Sans 600 (OFL), servida pelo proprio
-   painel (montagem /static do FastAPI). Renomeada para "PARCUS Titulo" porque
-   "Plex" e nome reservado na licenca; ver static/fonts/LICENSE.
-   Caminho relativo a raiz do site: vale em qualquer dominio ou porta. */
-@font-face {
-  font-family: "PARCUS Titulo";
-  src: url("/static/fonts/parcus-titulo-600.woff2") format("woff2");
-  font-weight: 600; font-style: normal; font-display: swap;
-  unicode-range: U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201D, U+2022, U+2026;
-}
-
 /* ---------------------------------------------------------------------------
-   Cores. Verde, ambar e vermelho sao EXCLUSIVOS do nivel de risco (indicadores,
-   anel, barras, selos, registro e perfis de exemplo). A interface usa
-   azul-marinho, azul-petroleo, azul medio e cinza-azulado. Todos os pares foram
-   medidos para WCAG AA (texto 4.5:1, texto grande e componentes 3:1).
+   Cores. Verde, ambar e vermelho sao EXCLUSIVOS do nivel de risco (resumo,
+   escala, barra de probabilidades, registro, apostadores de exemplo e marca).
+   Claro: moldura azul-petroleo sobre fundo levemente tingido. Escuro: moldura
+   grafite, com petroleo vivo so no botao principal e nos destaques.
 --------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
-  --fundo:           #eef2f6;
-  --superficie:      #ffffff;
-  --superficie-alta: #f3f6f9;
-  --campo:           #ffffff;
-  --borda:           #dde3ea;
-  --borda-controle:  #8592a3;
-  --texto:           #111a26;
-  --texto-2:         #3b4757;
-  --texto-3:         #5a6677;
-  --acento:          #2563c9;
-  --acento-anel:     rgba(37, 99, 201, .25);
-  --trilha:          #e2e8ef;
-  --dica-fundo:      #14202f;
-  --dica-texto:      #f2f5f8;
-
-  --lateral:         #0f1f3d;
-  --lateral-icone:   #b8c4d8;
-  --lateral-ativo:   rgba(255, 255, 255, .12);
-  --faixa:           #0e5a6e;
-  --faixa-texto:     #ffffff;
-  --faixa-sub:       #cfe6ec;
-  --faixa-hover:     rgba(255, 255, 255, .12);
-  --faixa-foco:      #ffffff;   /* anel externo do foco na faixa */
-  --faixa-foco-in:   #06121f;   /* anel interno */
-  /* botao CLASSIFICAR: azul-cobalto com texto branco. O preenchimento e
-     escuro como a faixa; o contorno contra ela vem da borda clara */
-  --botao:           #2563c9;
-  --botao-hover:     #1d4fa3;
-  --botao-ativo:     #1a4a9e;
-  --botao-desabilitado: #4a6796;
-  --botao-borda:     #cfe0ff;
-  --botao-texto:     #ffffff;
-  --marca:           #2563c9;
-
-  --risco-baixo:     #15875e;
-  --risco-medio:     #9e6b00;
-  --risco-alto:      #d0302a;
-  --selo-texto:      #ffffff;
-
-  --r-cartao: 12px;
-  --r-campo:  8px;
+  --fundo: #e6eef0; --superficie: #ffffff; --superficie-alta: #f0f5f6; --campo: #ffffff;
+  --borda: rgba(15, 69, 82, .12); --borda-controle: #93a6ab;
+  --texto: #12191c; --texto-2: #43525a; --texto-3: #64737b;
+  --acento: #0e6577; --acento-texto: #ffffff; --acento-suave: rgba(14, 101, 119, .14); --acento-anel: rgba(14, 101, 119, .28);
+  --trilha: #dce6e9;
+  --moldura: #0f4552; --moldura-texto: #ffffff; --moldura-texto-2: #b5d2d9; --moldura-hover: rgba(255, 255, 255, .10);
+  --moldura-borda: rgba(255, 255, 255, .22);
+  --prim-fundo: #ffffff; --prim-texto: #0f4552; --prim-hover: #e2f0f3;
+  --marca-trilha: rgba(255, 255, 255, .28); --marca-cheio: #7fd3e3; --marca-pino: #ffffff;
+  --baixo: #15875e; --medio: #9e6b00; --alto: #d0302a;
+  --curva: cubic-bezier(.22, 1, .36, 1);
+  --fonte: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 [data-theme="dark"] {
   color-scheme: dark;
-  --fundo:           #0a1120;
-  --superficie:      #1c222b;
-  --superficie-alta: #232a34;
-  --campo:           #151b23;
-  --borda:           #2d3541;
-  --borda-controle:  #6b7788;
-  --texto:           #e7edf4;
-  --texto-2:         #b6c1cf;
-  --texto-3:         #94a1b3;
-  --acento:          #6ea2f5;
-  --acento-anel:     rgba(110, 162, 245, .3);
-  --trilha:          #2c3440;
-  --dica-fundo:      #e7edf4;
-  --dica-texto:      #111a26;
-
-  --lateral:         #060c18;
-  --lateral-icone:   #a9b6cc;
-  --lateral-ativo:   rgba(255, 255, 255, .1);
-  /* a faixa do titulo usa o mesmo azul-petroleo nos dois temas (tokens do :root) */
-  --botao-hover:     #3170d8;
-
-  --risco-baixo:     #34ad7a;
-  --risco-medio:     #d08a1e;
-  --risco-alto:      #ef5d50;
-  --selo-texto:      #0a1120;
+  --fundo: #181c22; --superficie: #20252c; --superficie-alta: #282e36; --campo: #1c2127;
+  --borda: rgba(232, 234, 238, .09); --borda-controle: #6b7380;
+  --texto: #e8eaee; --texto-2: #b3b9c3; --texto-3: #8d94a0;
+  --acento: #3fb6cc; --acento-texto: #052027; --acento-suave: rgba(63, 182, 204, .16); --acento-anel: rgba(63, 182, 204, .35);
+  --trilha: #303741;
+  --moldura: #22282f; --moldura-texto: #eceef1; --moldura-texto-2: #a3abb6; --moldura-hover: rgba(255, 255, 255, .08);
+  --moldura-borda: rgba(255, 255, 255, .14);
+  --prim-fundo: #3fb6cc; --prim-texto: #052027; --prim-hover: #5cc6da;
+  --marca-trilha: rgba(255, 255, 255, .2); --marca-cheio: #3fb6cc; --marca-pino: #eceef1;
+  --baixo: #34ad7a; --medio: #d08a1e; --alto: #ef5d50;
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0;
-  background: var(--fundo);
-  color: var(--texto);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 13px;
-  line-height: 1.45;
-  -webkit-font-smoothing: antialiased;
-}
-.titulo-fonte { font-family: "PARCUS Titulo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 600; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font: 400 14px/1.45 var(--fonte); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
 .num { font-variant-numeric: tabular-nums; }
 .so-leitor { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ponto { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--nivel); }
+.traco { color: var(--texto-3); }
 
 /* troca de tema: transicao curta de cor, so durante a troca */
 html.trocando-tema, html.trocando-tema * {
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease,
-              fill 180ms ease, stroke 180ms ease !important;
+  transition: background-color 180ms var(--curva), color 180ms var(--curva), border-color 180ms var(--curva),
+              fill 180ms var(--curva), stroke 180ms var(--curva) !important;
 }
 
 /* ------------------------------ estrutura -------------------------------
-   Em desktop a pagina ocupa exatamente uma tela: barra lateral + coluna com
-   faixa, indicadores, corpo e rodape. So componentes internos rolam. */
-.app {
-  height: 100vh; height: 100dvh;
-  display: grid; grid-template-columns: 64px minmax(0, 1fr);
-  overflow: hidden;
-}
+   A pagina rola quando o conteudo nao cabe (zoom, tela baixa): nada fica
+   preso numa altura fixa e vaza por cima do rodape. */
+.app { min-height: 100dvh; display: grid; grid-template-columns: 56px minmax(0, 1fr); }
+.conteudo { display: flex; flex-direction: column; min-width: 0; container: conteudo / inline-size; }
 
 /* ---------------------------- barra lateral ---------------------------- */
-.lateral {
-  position: relative; z-index: 40;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 14px 0 16px;
-  background: var(--lateral);
-}
-.marca { display: block; width: 38px; height: 38px; margin-bottom: 20px; flex: none; }
-.navegacao { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.lateral-base { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.item-lateral {
-  position: relative; flex: none;
-  width: 42px; height: 42px; display: grid; place-items: center;
-  border: 0; border-radius: 10px; background: transparent; color: var(--lateral-icone);
-  text-decoration: none; cursor: pointer; font: inherit;
-  transition: background-color 120ms ease, color 120ms ease;
-}
-.item-lateral:hover, .item-lateral[aria-current="true"] { background: var(--lateral-ativo); color: #ffffff; }
-.item-lateral[aria-current="true"]::before {
-  content: ""; position: absolute; left: -11px; top: 10px; bottom: 10px;
-  width: 3px; border-radius: 0 3px 3px 0; background: #ffffff;
-}
-.item-lateral svg { width: 20px; height: 20px; }
-.item-lateral:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
-/* rotulo do item: dica ao passar o mouse ou focar; o nome acessivel vem do aria-label */
-.dica-lateral {
-  position: absolute; left: calc(100% + 12px); top: 50%;
-  transform: translate(-4px, -50%);
-  padding: 5px 9px; border-radius: 6px; white-space: nowrap;
-  background: var(--dica-fundo); color: var(--dica-texto);
-  font-size: 12px; line-height: 1.35; pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
-  opacity: 0; transition: opacity 120ms ease, transform 120ms ease;
-}
-.item-lateral:hover .dica-lateral, .item-lateral:focus-visible .dica-lateral { opacity: 1; transform: translate(0, -50%); }
-
-/* status do modelo: ponto cheio = carregado, ponto vazado = indisponivel
-   (sem verde/vermelho, que sao do nivel de risco) */
-.status-ponto {
-  position: absolute; right: 8px; bottom: 8px;
-  width: 9px; height: 9px; border-radius: 50%;
-  border: 2px solid var(--lateral-icone); background: transparent;
-}
-.status.ok .status-ponto { background: #ffffff; border-color: #ffffff; }
-.status.falha .status-ponto { border-style: dashed; }
+.lateral { position: sticky; top: 0; z-index: 20; height: 100dvh; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 20px 0 12px; background: var(--moldura); }
+.navegacao, .lateral-base { display: flex; flex-direction: column; gap: 4px; }
+.lateral-base { margin-top: auto; }
+.icone-botao { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--moldura-texto-2); cursor: pointer; transition: background-color 140ms var(--curva), color 140ms var(--curva); }
+.icone-botao:hover { background: var(--moldura-hover); color: var(--moldura-texto); }
+.icone-botao[aria-current="true"] { color: var(--moldura-texto); background: var(--moldura-hover); }
+.icone-botao[aria-current="true"]::before { content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 2px; border-radius: 2px; background: var(--moldura-texto); }
+.icone-botao svg { width: 18px; height: 18px; }
+.icone-botao:focus-visible { outline: 2px solid var(--moldura-texto); outline-offset: 2px; }
 .icone-sol, [data-theme="dark"] .icone-lua { display: none; }
 [data-theme="dark"] .icone-sol { display: block; }
+/* status do modelo: ponto cheio = carregado, vazado = indisponivel */
+.status { cursor: default; }
+.status-ponto { position: absolute; right: 6px; bottom: 6px; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--moldura-texto-2); }
+.status.ok .status-ponto { background: var(--moldura-texto); border-color: var(--moldura-texto); }
+.status.falha .status-ponto { border-style: dashed; }
 
-/* ------------------------------- conteudo ------------------------------- */
-.conteudo { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
-.conteudo > * { flex: none; }
-
-/* faixa de cabecalho em cor solida; os indicadores sobrepoem a borda de baixo */
-.faixa {
-  --sobreposicao: clamp(30px, 4.6vh, 46px);
-  display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  padding: clamp(8px, calc(3vh - 8px), 28px) 24px calc(var(--sobreposicao) + clamp(8px, 1.4vh, 22px));
-  background: var(--faixa); color: var(--faixa-texto);
-}
-.faixa-textos { min-width: 0; }
-/* titulo: 2,5x a 3,5x o texto base (13px), crescendo linearmente entre 1280 e 1920 px */
-.titulo {
-  margin: 0;
-  font-size: clamp(32.5px, calc(6.5px + 2.03125vw), 45.5px);
-  line-height: 1; letter-spacing: .03em; white-space: nowrap;
-}
-.subtitulo { margin: clamp(3px, .6vh, 7px) 0 0; font-size: 13px; color: var(--faixa-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.faixa-acoes { flex: none; display: flex; gap: 10px; }
-
-.botao {
-  height: clamp(36px, 5vh, 44px); min-width: 9.5rem; padding: 0 20px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: var(--r-campo); border: 1px solid var(--botao-borda);
-  background: var(--botao); color: var(--botao-texto);
-  font: inherit; font-size: 14px; font-weight: 700; letter-spacing: .06em; cursor: pointer;
-  transition: background-color 120ms ease, transform 120ms ease;
-}
-.botao:hover { background: var(--botao-hover); }
-.botao:active { background: var(--botao-ativo); transform: translateY(1px); }
-/* desabilitado durante CLASSIFICANDO…: tom mais palido, sem opacidade, texto AA */
-.botao[disabled] { cursor: progress; background: var(--botao-desabilitado); transform: none; }
-/* foco: anel duplo, escuro colado ao botao e branco por fora */
-.faixa .botao:focus-visible { outline: 2px solid var(--faixa-foco); outline-offset: 2px; box-shadow: 0 0 0 2px var(--faixa-foco-in); }
-/* CLASSIFICAR e CLASSIFICANDO… ocupam a mesma celula: a largura do botao e
-   sempre a do rotulo mais longo */
+/* ------------------------------ cabecalho ------------------------------ */
+.cabecalho { flex: none; min-height: 80px; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: var(--moldura); color: var(--moldura-texto); }
+.marca { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.marca svg { width: 40px; height: 40px; flex: none; }
+/* marca animada: comeca na cor padrao; a cada classificacao o marcador vai
+   para a esquerda (baixo), centro (medio) ou direita (alto), na cor do nivel */
+#marca { --k: .6818; }
+.marca-cheio { transform-box: fill-box; transform-origin: left center; transform: scaleX(var(--k)); fill: var(--marca-cor, var(--marca-cheio)); transition: transform 900ms var(--curva), fill 400ms var(--curva); }
+.marca-pino { transform: translateX(calc(var(--k) * 22px)); transition: transform 900ms var(--curva); }
+.titulo { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: .04em; line-height: 1; }
+.subtitulo { margin: 0; font-size: 15px; font-weight: 500; line-height: 20px; color: var(--moldura-texto); padding-left: 16px; border-left: 1px solid var(--moldura-borda); white-space: nowrap; }
+.acoes { margin-left: auto; display: flex; gap: 8px; }
+.botao { height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--moldura-borda); background: transparent; color: var(--moldura-texto); font-weight: 500; cursor: pointer; white-space: nowrap; transition: background-color 140ms var(--curva), transform 140ms var(--curva); }
+.botao:hover { background: var(--moldura-hover); }
+.botao:active { transform: scale(.97); }
+.botao:focus-visible { outline: 2px solid var(--moldura-texto); outline-offset: 2px; }
+.botao-primario { min-width: 144px; border-color: transparent; background: var(--prim-fundo); color: var(--prim-texto); font-weight: 600; }
+.botao-primario:hover { background: var(--prim-hover); }
+.botao[disabled] { cursor: progress; opacity: .85; transform: none; }
+/* Classificar e Classificando… ocupam a mesma celula: largura fixa */
 .botao-rotulo { display: inline-grid; justify-items: center; }
 .botao-rotulo > span { grid-area: 1 / 1; }
 .botao-reserva { visibility: hidden; }
-.botao-secundario {
-  min-width: 0; padding: 0 16px;
-  background: transparent; color: var(--faixa-texto); border-color: var(--faixa-sub);
-  font-weight: 500; letter-spacing: normal;
-}
-.botao-secundario:hover { background: var(--faixa-hover); }
-.botao-secundario:active { background: var(--faixa-hover); }
 
-/* ----------------------------- indicadores ----------------------------- */
-.indicadores {
-  position: relative; z-index: 2;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
-  margin-top: calc(-1 * clamp(30px, 4.6vh, 46px));
-  padding: 0 24px;
-}
-.indicador {
-  min-width: 0;
-  padding: clamp(7px, 1.3vh, 16px) 16px;
-  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--r-cartao);
-}
-.indicador-rotulo { display: block; font-size: 12px; color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.indicador-linha { display: flex; align-items: center; gap: 10px; min-height: clamp(26px, 4.2vh, 44px); }
-.indicador-valor {
-  font-size: clamp(22px, 3.4vh, 36px); line-height: 1.1;
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-}
-.indicador-valor small { font-size: 13px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 400; color: var(--texto-3); margin-left: 3px; }
-.indicador-nota { display: block; font-size: 12px; color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vazio-traco { color: var(--texto-3); }
+/* ------------------------------- resumo -------------------------------
+   Linhas divisorias pelo gap: funcionam com 4, 2 ou 1 coluna. */
+.resumo { flex: none; margin: 16px 24px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--borda); border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; }
+.resumo > div { padding: 16px 20px; min-width: 0; background: var(--superficie); container-type: inline-size; }
+.resumo-rotulo { font-size: 13px; color: var(--texto-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* figuras grandes que encolhem com a largura da propria celula (cqi): nao
+   saem do quadro em nenhum zoom; indice, classe e probabilidade na cor do nivel */
+.resumo-valor { margin-top: 4px; font-size: clamp(24px, 17cqi, 44px); font-weight: 600; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; display: flex; align-items: baseline; gap: 8px; min-width: 0; color: var(--nivel, var(--texto)); transition: color 300ms var(--curva); }
+.resumo-valor small { font-size: 16px; font-weight: 400; letter-spacing: 0; color: var(--texto-3); }
+.resumo-valor.texto { font-size: clamp(20px, 12cqi, 32px); }
+.resumo-nota { font-size: 13px; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* depois da regra base, para valer sobre ela */
+@container conteudo (max-width: 1100px) { .resumo { grid-template-columns: 1fr 1fr; } }
+@container conteudo (max-width: 440px) { .resumo { grid-template-columns: 1fr; } }
 
-/* selo da classe: os selos de variacao do kit viram o nivel de risco */
-.selo {
-  display: inline-flex; align-items: center; height: 22px; padding: 0 9px;
-  border-radius: 999px; background: var(--nivel); color: var(--selo-texto);
-  font-size: 12px; font-weight: 600; white-space: nowrap;
-}
-.selo-grande { height: auto; padding: 3px 13px; font-size: clamp(15px, 2.2vh, 24px); line-height: 1.2; }
-
-/* --------------------------------- corpo -------------------------------- */
-.corpo {
-  flex: 1 1 auto; min-height: 0;
-  display: grid; gap: clamp(10px, 1.5vh, 14px); padding: clamp(10px, 1.5vh, 14px) 24px;
-  grid-template-columns: minmax(606px, 1fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas: "form resultado" "registro resultado";
-}
-.cartao {
-  min-height: 0; min-width: 0;
-  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--r-cartao);
-}
-.cartao-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cartao-titulo { margin: 0; font-size: 15px; line-height: 1.25; color: var(--texto); letter-spacing: .005em; }
-.cartao-nota { font-size: 12px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
-.rotulo-secao {
-  margin: 0; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .08em; color: var(--texto-2);
-}
-/* destaque breve quando a navegacao lateral leva a uma area */
-.realcado { outline: 2px solid var(--acento); outline-offset: 2px; }
+/* -------------------------------- corpo -------------------------------- */
+.corpo { flex: 1 0 auto; display: grid; gap: 16px; padding: 16px 24px; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "form resultado" "registro resultado"; }
+.painel { min-width: 0; background: var(--superficie); border: 1px solid var(--borda); border-radius: 12px; }
+.painel-cabeca { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 16px 20px 0; }
+.painel-titulo { margin: 0; font-size: 16px; font-weight: 600; }
+.painel-nota { font-size: 13px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.rotulo { font-size: 13px; color: var(--texto-3); margin: 0 0 8px; font-weight: 400; }
 [tabindex="-1"]:focus { outline: none; }
-[tabindex="-1"].realcado:focus { outline: 2px solid var(--acento); }
+/* destaque da secao aberta pela barra lateral */
+.destaque { animation: destaque 1600ms var(--curva); }
+@keyframes destaque { 0%, 30% { box-shadow: 0 0 0 3px var(--acento-anel); border-color: var(--acento); } }
+.rodape.destaque { animation: destaque-rodape 1600ms var(--curva); }
+@keyframes destaque-rodape { 0%, 30% { background: var(--acento-suave); } }
 
-/* ------------------------------- formulario ----------------------------- */
-.entrada {
-  grid-area: form;
-  display: flex; flex-direction: column; gap: clamp(10px, calc(4vh - 18px), 28px);
-  padding: clamp(12px, 1.8vh, 18px) 16px;
-}
-.perfis { display: flex; flex-wrap: wrap; gap: 8px; }
-.perfil {
-  display: inline-flex; align-items: center; gap: 7px;
-  height: clamp(30px, 4.2vh, 38px); padding: 0 13px;
-  border: 1px solid var(--borda-controle); border-radius: 999px;
-  background: transparent; color: var(--texto-2);
-  font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-.perfil:hover { background: var(--superficie-alta); color: var(--texto); }
-.perfil[aria-pressed="true"] { border-color: var(--nivel); box-shadow: inset 0 0 0 1px var(--nivel); background: var(--superficie-alta); color: var(--texto); }
-.perfil .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--nivel); }
-.perfil .id { font-size: 11px; font-weight: 400; color: var(--texto-3); font-variant-numeric: tabular-nums; }
-
-/* as secoes ocupam a altura livre do cartao e se distribuem nela; em telas
-   baixas sobra so o espaco minimo */
-.secoes { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-evenly; gap: clamp(10px, calc(5vh - 26px), 36px); }
-.secao { border: 0; margin: 0; padding: 0; min-width: 0; }
-.secao legend { padding: 0; margin-bottom: 5px; }
-.grade-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.campo { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.campo label { font-size: 12px; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.campo input {
-  width: 100%; height: clamp(30px, 4.4vh, 42px); padding: 0 9px;
-  background: var(--campo); color: var(--texto);
-  border: 1px solid var(--borda-controle); border-radius: var(--r-campo);
-  font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-.campo input:hover { border-color: var(--texto-3); }
-.campo input:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-anel); }
+/* ----------------------- formulario: ficha em linhas ---------------------
+   Campos de texto com inputmode="decimal", e nao type="number": o campo
+   numerico depende do idioma do navegador e, em ingles, descarta a virgula. */
+.form { grid-area: form; display: flex; flex-direction: column; container-type: inline-size; }
+.exemplos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px 0; }
+.exemplos-rotulo { font-size: 13px; color: var(--texto-3); margin-right: 4px; }
+.exemplo { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--borda); border-radius: 8px; background: transparent; font-size: 13px; color: var(--texto-2); cursor: pointer; transition: background-color 140ms var(--curva), border-color 140ms var(--curva), color 140ms var(--curva); }
+.exemplo .ponto { width: 8px; height: 8px; }
+.exemplo:hover { background: var(--superficie-alta); color: var(--texto); }
+.exemplo[aria-pressed="true"] { border-color: var(--nivel); color: var(--texto); background: var(--superficie-alta); }
+.exemplo .id { color: var(--texto-3); font-variant-numeric: tabular-nums; }
+.exemplo:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.grupos { padding: 4px 20px 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 16px 0 4px; font-size: 13px; font-weight: 600; color: var(--texto); }
+.linhas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
+@container (max-width: 560px) { .linhas { grid-template-columns: minmax(0, 1fr); } }
+.linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 44px; border-bottom: 1px solid var(--borda); cursor: text; }
+.linha span { min-width: 0; font-size: 14px; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.linha input { width: clamp(72px, 42%, 112px); flex: none; height: 32px; padding: 0 10px; text-align: right; border: 1px solid transparent; border-radius: 8px; background: var(--superficie-alta); font-size: 14px; font-variant-numeric: tabular-nums; transition: border-color 140ms var(--curva), background-color 140ms var(--curva), box-shadow 140ms var(--curva); }
+.linha input:hover { border-color: var(--borda-controle); }
+.linha input:focus { outline: none; border-color: var(--acento); background: var(--campo); box-shadow: 0 0 0 3px var(--acento-anel); }
+.linha:focus-within span { color: var(--texto); }
 /* invalido: borda dupla na cor do texto (vermelho e so do nivel de risco) */
-.campo input[aria-invalid="true"] { border-color: var(--texto); box-shadow: 0 0 0 1px var(--texto); }
-/* dica: so ao focar ou passar o mouse; ligada ao campo por aria-describedby */
-.dica {
-  position: absolute; left: 0; top: calc(100% + 6px); z-index: 30;
-  width: max(100%, 230px); padding: 7px 9px; border-radius: 7px;
-  background: var(--dica-fundo); color: var(--dica-texto);
-  font-size: 11.5px; line-height: 1.45;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
-  opacity: 0; transform: translateY(-3px); pointer-events: none;
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-.grade-campos .campo:nth-child(4n) .dica,
-.grade-campos .campo:nth-child(4n-1) .dica { left: auto; right: 0; }
-.campo:hover .dica, .campo:focus-within .dica { opacity: 1; transform: none; }
+.linha input[aria-invalid="true"] { border-color: var(--texto); box-shadow: 0 0 0 1px var(--texto); }
+/* valor trocado por um exemplo: um realce curto mostra o que mudou */
+.linha input.mudou { animation: mudou 900ms var(--curva); }
+@keyframes mudou { from { background: var(--acento-suave); border-color: var(--acento); } }
+/* uma linha de ajuda so, para o campo em foco, no lugar de doze dicas */
+.ajuda { margin-top: auto; padding: 12px 20px 16px; display: flex; gap: 8px; align-items: flex-start; min-height: 60px; font-size: 13px; color: var(--texto-2); }
+.ajuda svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--texto-3); }
+.ajuda p { margin: 0; transition: opacity 160ms var(--curva), transform 160ms var(--curva); }
+.ajuda p.saindo { opacity: 0; transform: translateY(4px); }
 
-.perfil:focus-visible, .rodape a:focus-visible, .registro-corpo:focus-visible {
-  outline: 2px solid var(--acento); outline-offset: 2px;
-}
+/* ------------------------------ resultado ------------------------------ */
+.resultado { grid-area: resultado; display: flex; flex-direction: column; container-type: inline-size; }
+.resultado-corpo { flex: 1 1 auto; overflow-x: hidden; padding: 20px; display: flex; flex-direction: column; gap: 28px; }
+.indice { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.indice-valor { font-size: clamp(40px, 13cqi, 64px); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.indice-de { font-size: 16px; color: var(--texto-3); }
+.indice-classe { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+/* escala do indice: preenchimento e marcador so com transform */
+.escala { position: relative; padding-top: 4px; }
+.escala-trilha { position: relative; height: 10px; border-radius: 5px; background: var(--trilha); overflow: hidden; }
+.escala-preench { position: absolute; inset: 0; background: var(--nivel, var(--trilha)); transform-origin: left; transform: scaleX(0); transition: transform 900ms var(--curva), background-color 300ms var(--curva); }
+.escala-marcador { position: absolute; left: 0; right: 0; top: -2px; height: 22px; transform: translateX(0%); transition: transform 900ms var(--curva), opacity 200ms var(--curva); pointer-events: none; }
+.escala-marcador::before { content: ""; position: absolute; left: -1px; top: 0; width: 2px; height: 22px; border-radius: 1px; background: var(--texto); }
+.escala-marcador.oculto { opacity: 0; }
+.escala svg { display: block; width: 100%; height: 6px; margin-top: 6px; overflow: visible; }
+.escala line { stroke: var(--texto-3); stroke-width: 1; }
+.escala-numeros { display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+/* probabilidades: uma barra so, as tres partes somam 100% */
+.empilhada { position: relative; height: 12px; border-radius: 6px; overflow: hidden; background: var(--trilha); }
+.empilhada i { position: absolute; inset: 0; transform-origin: left; transform: translateX(0%) scaleX(0); transition: transform 900ms var(--curva); }
+.empilhada i + i { box-shadow: -2px 0 0 var(--superficie); }
+.legenda { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; margin-top: 12px; font-size: 14px; }
+.legenda div { display: flex; align-items: center; gap: 8px; color: var(--texto-2); }
+.legenda .ponto { width: 8px; height: 8px; }
+.legenda b { font-weight: 500; color: var(--texto); font-variant-numeric: tabular-nums; }
+.legenda .lider b { font-weight: 600; }
+.intervencao { border-top: 1px solid var(--borda); padding-top: 20px; }
+.intervencao-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.intervencao-codigo { font-size: 12px; color: var(--texto-3); font-family: var(--mono); }
+.intervencao h3 { margin: 4px 0 0; font-size: 17px; font-weight: 600; }
+.intervencao p { margin: 8px 0 0; max-width: 62ch; color: var(--texto-2); }
+.intervencao-acoes { margin-top: 12px; font-size: 13px; color: var(--texto-3); }
+.intervencao-acoes span { color: var(--texto); }
+.avisos { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--texto-2); }
+.avisos div { display: flex; gap: 8px; }
+.avisos svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--medio); }
+.vazio { color: var(--texto-2); max-width: 40ch; margin: 0; }
+.erro { padding: 12px 16px; border-radius: 8px; background: var(--superficie-alta); border: 1px solid var(--borda-controle); }
+.erro strong { display: block; margin-bottom: 4px; font-weight: 600; }
+/* intervencao e avisos entram juntos, um so movimento */
+.entra { animation: entra 420ms var(--curva) both; }
+.entra + .entra { animation-delay: 60ms; }
+@keyframes entra { from { opacity: 0; transform: translateY(8px); } }
 
-/* ------------------------------- resultado ------------------------------ */
-.cartao-resultado { grid-area: resultado; display: flex; flex-direction: column; }
-.cartao-resultado > .cartao-cabeca { padding: 12px 18px 0; }
-.resultado-corpo {
-  flex: 1 1 auto; min-height: 0; overflow: auto;
-  display: flex; flex-direction: column;
-  padding: 8px clamp(16px, 1.6vw, 28px) clamp(14px, 2vh, 22px);
-}
-/* centraliza na altura que sobrar; margem automatica para rolar, e nao cortar,
-   se o conteudo crescer */
-.resultado-corpo > * { margin-block: auto; }
-
-.resultado-topo {
-  display: grid; grid-template-columns: auto minmax(0, 1fr);
-  gap: clamp(18px, 2.2vw, 40px); align-items: center;
-}
-.anel-bloco { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.anel { position: relative; width: clamp(150px, calc(46vh - 180px), 290px); container-type: inline-size; }
-.anel svg { display: block; width: 100%; height: auto; }
-.anel-trilha { fill: none; stroke: var(--trilha); stroke-width: 14; }
-.anel-arco {
-  fill: none; stroke: var(--nivel, var(--trilha)); stroke-width: 14; stroke-linecap: round;
-  transition: stroke-dashoffset 900ms cubic-bezier(.22,1,.36,1);
-}
-.anel-marca { stroke: var(--texto-3); stroke-width: 1.5; stroke-linecap: round; }
-.anel-marca.maior { stroke-width: 2.2; }
-.anel-centro {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center; pointer-events: none;
-}
-.anel-valor { font-size: clamp(36px, 25cqi, 76px); line-height: 1; font-variant-numeric: tabular-nums; }
-.anel-legenda { margin-top: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--texto-2); }
-.anel-nota { font-size: 11.5px; color: var(--texto-3); text-align: center; }
-
-.probabilidades { display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 16px); }
-.prob { display: grid; grid-template-columns: 104px minmax(0, 1fr) 54px; align-items: center; gap: 12px; }
-.prob .nome { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--texto-2); }
-.prob .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.prob .trilha { height: 8px; background: var(--trilha); border-radius: 4px; overflow: hidden; }
-.prob .barra { height: 100%; border-radius: 4px; }
-.prob .valor { font-size: 13.5px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
-
-.intervencao {
-  margin-top: clamp(14px, 2.6vh, 28px);
-  padding: clamp(12px, 1.8vh, 18px) clamp(14px, 1.4vw, 20px);
-  background: var(--superficie-alta); border: 1px solid var(--borda); border-left: 4px solid var(--nivel);
-  border-radius: var(--r-campo);
-}
-.intervencao-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.intervencao-codigo { font-size: 11.5px; color: var(--texto-2); font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
-.intervencao .texto { margin-top: 7px; font-size: 14px; line-height: 1.55; color: var(--texto); max-width: 70ch; }
-.acoes-lista { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.acao-chip {
-  font-size: 11.5px; padding: 3px 8px; border-radius: 5px;
-  background: var(--superficie); border: 1px solid var(--borda); color: var(--texto-2);
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-}
-
-.vazio { display: flex; align-items: center; gap: 24px; color: var(--texto-2); font-size: 14px; line-height: 1.55; }
-.vazio p { margin: 0; max-width: 34ch; }
-.vazio strong { color: var(--texto); }
-
-.avisos { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-.aviso {
-  padding: 7px 10px; border-radius: var(--r-campo);
-  background: var(--superficie-alta); border: 1px solid var(--borda-controle);
-  font-size: 12px; line-height: 1.45;
-}
-.erro {
-  padding: 12px 14px; border-radius: var(--r-campo);
-  background: var(--superficie-alta); border: 1px solid var(--borda-controle); border-left: 4px solid var(--acento);
-  font-size: 13px; line-height: 1.5;
-}
-.erro .rotulo-secao { display: block; margin-bottom: 4px; }
-
-/* ------------------------------- registro ------------------------------- */
-.cartao-registro {
-  grid-area: registro;
-  --reg-cab: 24px; --reg-linha: 26px;
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.cartao-registro > .cartao-cabeca { padding: 10px 16px 0; }
-.registro-corpo { flex: none; height: calc(var(--reg-cab) + 3 * var(--reg-linha)); overflow: auto; margin-top: 6px; }
-.registro-tabela { width: 100%; border-collapse: collapse; font-size: 12px; }
-.registro-tabela th {
-  position: sticky; top: 0; z-index: 1; background: var(--superficie);
-  height: var(--reg-cab); padding: 0 10px; text-align: left;
-  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texto-2);
-  border-bottom: 1px solid var(--borda);
-}
-.registro-tabela td { height: var(--reg-linha); padding: 0 10px; border-bottom: 1px solid var(--borda); white-space: nowrap; }
-.registro-tabela th:first-child, .registro-tabela td:first-child { padding-left: 16px; }
-.registro-tabela th:last-child, .registro-tabela td:last-child { padding-right: 16px; }
-.registro-tabela .direita { text-align: right; }
-.registro-linha { transition: background-color 120ms ease; }
-.registro-linha:hover { background: var(--superficie-alta); }
-.registro-hora, .registro-prob { font-variant-numeric: tabular-nums; }
-.registro-hora { color: var(--texto-2); }
-.registro-classe { display: inline-flex; align-items: center; gap: 7px; }
-.registro-ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.registro-acao { color: var(--texto-2); max-width: 1px; width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.registro-vazio { margin: 0; padding: 10px 16px; font-size: 12px; color: var(--texto-2); }
+/* ------------------------------- registro ------------------------------ */
+.registro { grid-area: registro; display: flex; flex-direction: column; overflow: hidden; }
+.registro-corpo { flex: 1 1 auto; min-height: 128px; max-height: 360px; overflow: auto; margin-top: 8px; }
+.registro-corpo:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { position: sticky; top: 0; background: var(--superficie); height: 32px; padding: 0 12px; text-align: left; font-size: 13px; font-weight: 500; color: var(--texto-3); border-bottom: 1px solid var(--borda); }
+td { height: 36px; padding: 0 12px; border-bottom: 1px solid var(--borda); white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 20px; }
+th:last-child, td:last-child { padding-right: 20px; }
+.direita { text-align: right; font-variant-numeric: tabular-nums; }
+td .classe { display: inline-flex; align-items: center; gap: 8px; }
+td .ponto { width: 8px; height: 8px; }
+/* a linha nova entra com um realce que some */
+tr.nova td { animation: nova 1400ms var(--curva); }
+@keyframes nova { from { background: var(--acento-suave); } }
+.registro-vazio { margin: 0; padding: 12px 20px; color: var(--texto-3); font-size: 13px; }
 
 /* -------------------------------- rodape -------------------------------- */
-.rodape {
-  padding: 5px 24px 6px; border-top: 1px solid var(--borda);
-  font-size: 11.5px; line-height: 1.45; color: var(--texto-3);
-}
+.rodape { flex: none; padding: 8px 24px; border-top: 1px solid var(--borda); font-size: 12px; line-height: 16px; color: var(--texto-3); }
 .rodape p { margin: 0; }
-.rodape a { color: var(--acento); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.rodape a { color: var(--acento); text-underline-offset: 2px; }
+.rodape a:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 
-/* ------------------------- telas estreitas -------------------------
-   Abaixo de 1040px a barra lateral vira faixa superior e a pagina rola. */
+/* --------------------------- telas estreitas ---------------------------
+   Abaixo de 1040px a barra lateral vira faixa superior e tudo empilha. */
 @media (max-width: 1039.98px) {
-  .app { display: block; height: auto; min-height: 100dvh; overflow: visible; }
-  .lateral { flex-direction: row; padding: 8px 16px; gap: 6px; }
-  .marca { margin: 0 12px 0 0; }
+  .app { display: block; }
+  .lateral { position: static; height: auto; flex-direction: row; padding: 8px 16px; }
   .navegacao { flex-direction: row; }
   .lateral-base { margin: 0 0 0 auto; flex-direction: row; }
-  .item-lateral[aria-current="true"]::before { left: 10px; right: 10px; top: auto; bottom: -8px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
-  .dica-lateral { left: 50%; top: calc(100% + 10px); transform: translate(-50%, -4px); }
-  .item-lateral:hover .dica-lateral, .item-lateral:focus-visible .dica-lateral { transform: translate(-50%, 0); }
-  .lateral-base .dica-lateral { left: auto; right: 0; transform: translate(0, -4px); }
-  .lateral-base .item-lateral:hover .dica-lateral, .lateral-base .item-lateral:focus-visible .dica-lateral { transform: none; }
-  .conteudo { overflow: visible; }
-  .faixa { flex-wrap: wrap; }
-  .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .icone-botao[aria-current="true"]::before { left: 9px; right: 9px; top: auto; bottom: -8px; width: auto; height: 2px; }
   .corpo { grid-template-columns: 1fr; grid-template-areas: "form" "resultado" "registro"; grid-template-rows: auto; }
 }
 @media (max-width: 620px) {
-  .titulo { font-size: 30px; }
-  .subtitulo { white-space: normal; }
-  .indicadores, .corpo, .faixa, .rodape { padding-left: 14px; padding-right: 14px; }
-  .grade-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grade-campos .campo:nth-child(4n) .dica, .grade-campos .campo:nth-child(4n-1) .dica { left: 0; right: auto; }
-  .grade-campos .campo:nth-child(2n) .dica { left: auto; right: 0; }
-  .resultado-topo { grid-template-columns: 1fr; justify-items: center; }
-  .resultado-probs { justify-self: stretch; }
-  .indicador-nota { white-space: normal; }
-  .perfil .id { display: none; }
+  .cabecalho { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+  .subtitulo { display: none; }
+  .titulo { font-size: 26px; }
+  .marca svg { width: 32px; height: 32px; }
+  .acoes { margin-left: 0; width: 100%; }
+  .acoes .botao { flex: 1; min-width: 0; }
+  .corpo { padding-left: 16px; padding-right: 16px; }
+  .resumo { margin: 16px 16px 0; }
+  .exemplo .id { display: none; }
 }
 
 /* ------------------------- movimento reduzido ------------------------- */
@@ -499,129 +284,103 @@ html.trocando-tema, html.trocando-tema * {
 
   <!-- --------------------------- barra lateral --------------------------- -->
   <nav class="lateral" aria-label="Navegação do painel">
-    <svg class="marca" viewBox="0 0 38 38" aria-hidden="true">
-      <rect width="38" height="38" rx="10" fill="var(--marca)"></rect>
-      <path d="M14 28V10h6.6a5.9 5.9 0 0 1 0 11.8H14" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
     <div class="navegacao">
-      <a class="item-lateral" href="#formulario" data-alvo="formulario" aria-label="Classificar" aria-current="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"></path><circle cx="15" cy="7" r="2"></circle><circle cx="9" cy="12" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
-        <span class="dica-lateral" aria-hidden="true">Classificar</span>
-      </a>
-      <a class="item-lateral" href="#registro" data-alvo="registro" aria-label="Registro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>
-        <span class="dica-lateral" aria-hidden="true">Registro</span>
-      </a>
-      <a class="item-lateral" href="#sobre" data-alvo="sobre" aria-label="Sobre o modelo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 11v5.5M12 7.6v.1"></path></svg>
-        <span class="dica-lateral" aria-hidden="true">Sobre o modelo</span>
-      </a>
+      <button class="icone-botao" type="button" data-alvo="formulario" aria-current="true" aria-label="Variáveis do apostador" title="Variáveis do apostador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+      </button>
+      <button class="icone-botao" type="button" data-alvo="registro" aria-label="Registro" title="Registro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+      </button>
+      <button class="icone-botao" type="button" data-alvo="sobre" aria-label="Sobre o modelo" title="Sobre o modelo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg>
+      </button>
     </div>
     <div class="lateral-base">
-      <button class="item-lateral" type="button" id="botao-tema" aria-label="Ativar tema escuro">
-        <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.6 6.6 0 0 0 9.5 9.5z"></path></svg>
-        <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-        <span class="dica-lateral" id="tema-dica" aria-hidden="true">Ativar tema escuro</span>
+      <button class="icone-botao" type="button" id="botao-tema" aria-label="Ativar tema escuro" title="Ativar tema escuro">
+        <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 1 1 11 3.5a6.6 6.6 0 0 0 9.5 9.5z"/></svg>
+        <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
-      <div class="item-lateral status" id="status" role="status" tabindex="0" aria-labelledby="status-texto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 5 12 2.5-6H21"></path></svg>
+      <div class="icone-botao status" id="status" role="status" tabindex="0" title="Verificando modelo…">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 5 12 2.5-6H21"/></svg>
         <span class="status-ponto" aria-hidden="true"></span>
-        <span class="dica-lateral" id="status-texto">verificando modelo…</span>
+        <span class="so-leitor" id="status-texto">Verificando modelo…</span>
       </div>
     </div>
   </nav>
 
   <div class="conteudo">
 
-    <!-- --------------------------- faixa ------------------------------- -->
-    <header class="faixa" aria-label="PARCUS — Painel de Risco Comportamental do Usuário">
-      <div class="faixa-textos">
-        <h1 class="titulo titulo-fonte">PARCUS</h1>
-        <p class="subtitulo">Painel de Risco Comportamental do Usuário</p>
+    <!-- ----------------------------- cabecalho ----------------------------- -->
+    <header class="cabecalho">
+      <div class="marca">
+        <!-- marca: a propria escala do indice, uma regua com o marcador -->
+        <svg id="marca" viewBox="0 0 28 28" aria-hidden="true">
+          <rect x="3" y="15" width="22" height="5" rx="2.5" fill="var(--marca-trilha)"/>
+          <rect class="marca-cheio" x="3" y="15" width="22" height="5" rx="2.5"/>
+          <rect class="marca-pino" x="2" y="8" width="2" height="15" rx="1" fill="var(--marca-pino)"/>
+        </svg>
+        <h1 class="titulo">PARCUS</h1>
+        <p class="subtitulo">Painel de Risco Comportamental<br>do Usuário</p>
       </div>
-      <div class="faixa-acoes">
-        <button class="botao botao-secundario" type="button" id="botao-restaurar">Restaurar medianas</button>
-        <button class="botao" type="submit" form="formulario" id="botao-classificar" aria-label="Classificar"><span class="botao-rotulo"><span id="rotulo-classificar">CLASSIFICAR</span><span class="botao-reserva" aria-hidden="true">CLASSIFICANDO…</span></span></button>
+      <div class="acoes">
+        <button class="botao" type="button" id="botao-medianas">Usar medianas</button>
+        <button class="botao botao-primario" type="submit" form="formulario" id="botao-classificar" aria-label="Classificar"><span class="botao-rotulo"><span id="rotulo-classificar">Classificar</span><span class="botao-reserva" aria-hidden="true">Classificando…</span></span></button>
       </div>
     </header>
 
-    <!-- ------------------------- indicadores --------------------------- -->
-    <section class="indicadores" aria-label="Indicadores da última classificação">
-      <div class="indicador">
-        <span class="indicador-rotulo">Índice de risco</span>
-        <div class="indicador-linha">
-          <span class="indicador-valor titulo-fonte" id="kpi-indice"><span class="vazio-traco">—</span></span>
-          <span id="kpi-indice-selo"></span>
-        </div>
-        <span class="indicador-nota">escala de 0 a 100</span>
-      </div>
-      <div class="indicador">
-        <span class="indicador-rotulo">Classe prevista</span>
-        <div class="indicador-linha" id="kpi-classe"><span class="indicador-valor titulo-fonte vazio-traco">—</span></div>
-        <span class="indicador-nota" id="kpi-classe-nota">aguardando classificação</span>
-      </div>
-      <div class="indicador">
-        <span class="indicador-rotulo">Probabilidade da classe</span>
-        <div class="indicador-linha">
-          <span class="indicador-valor titulo-fonte" id="kpi-prob"><span class="vazio-traco">—</span></span>
-          <span id="kpi-prob-selo"></span>
-        </div>
-        <span class="indicador-nota">maior das três probabilidades</span>
-      </div>
-      <div class="indicador">
-        <span class="indicador-rotulo">Classificações na sessão</span>
-        <div class="indicador-linha">
-          <span class="indicador-valor titulo-fonte" id="kpi-sessao"><span class="vazio-traco">—</span></span>
-        </div>
-        <span class="indicador-nota" id="kpi-sessao-nota">desde que esta página foi aberta</span>
-      </div>
+    <!-- ------------------------------ resumo ------------------------------ -->
+    <section class="resumo" aria-label="Última classificação">
+      <div><div class="resumo-rotulo">Índice de risco</div><div class="resumo-valor" id="r-indice"><span class="traco">—</span></div></div>
+      <div><div class="resumo-rotulo">Classe prevista</div><div class="resumo-valor" id="r-classe"><span class="traco">—</span></div><div class="resumo-nota" id="r-classe-nota"></div></div>
+      <div><div class="resumo-rotulo">Probabilidade da classe</div><div class="resumo-valor" id="r-prob"><span class="traco">—</span></div></div>
+      <div><div class="resumo-rotulo">Classificações nesta sessão</div><div class="resumo-valor" id="r-sessao">0</div></div>
     </section>
 
-    <!-- ----------------------------- corpo ----------------------------- -->
+    <!-- ------------------------------- corpo ------------------------------- -->
     <main class="corpo">
-
-      <!-- campos de texto com inputmode="decimal", e nao type="number": o campo
-           numerico depende do idioma do navegador e, em ingles, descarta a virgula
-           digitada. A leitura do numero e feita por lerNumero(); a validacao de
-           dominio continua na API. -->
-      <form class="cartao entrada" id="formulario" tabindex="-1" autocomplete="off" novalidate aria-labelledby="titulo-entrada">
-        <h2 class="so-leitor" id="titulo-entrada">Variáveis do apostador</h2>
-        <div class="perfis" id="perfis" role="group" aria-label="Perfis de exemplo: usuários reais da base"></div>
-        <div class="secoes">
-          <fieldset class="secao">
-            <legend class="rotulo-secao">Volume e frequência</legend>
-            <div class="grade-campos" id="grupo-volume"></div>
-          </fieldset>
-          <fieldset class="secao">
-            <legend class="rotulo-secao">Valores e perdas</legend>
-            <div class="grade-campos" id="grupo-valores"></div>
-          </fieldset>
-          <fieldset class="secao">
-            <legend class="rotulo-secao">Padrão temporal</legend>
-            <div class="grade-campos" id="grupo-temporal"></div>
-          </fieldset>
+      <form class="painel form" id="formulario" tabindex="-1" autocomplete="off" novalidate aria-labelledby="titulo-form">
+        <div class="painel-cabeca"><h2 class="painel-titulo" id="titulo-form">Variáveis do apostador</h2><span class="painel-nota">começam na mediana</span></div>
+        <div class="exemplos" id="exemplos" role="group" aria-label="Apostadores reais da base"><span class="exemplos-rotulo">Apostadores reais:</span></div>
+        <div class="grupos" id="grupos"></div>
+        <div class="ajuda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg>
+          <p id="ajuda">Clique num campo para ver o que ele mede.</p>
         </div>
       </form>
 
-      <section class="cartao cartao-resultado" id="cartao-resultado" aria-labelledby="titulo-resultado">
-        <div class="cartao-cabeca">
-          <h2 class="cartao-titulo titulo-fonte" id="titulo-resultado">Resultado</h2>
-          <span class="cartao-nota" id="resultado-nota"></span>
+      <section class="painel resultado" id="cartao-resultado" aria-labelledby="titulo-resultado">
+        <div class="painel-cabeca"><h2 class="painel-titulo" id="titulo-resultado">Resultado</h2><span class="painel-nota" id="resultado-hora"></span></div>
+        <div class="resultado-corpo">
+          <div class="indice">
+            <span class="indice-valor" id="indice-valor"><span class="traco">—</span></span><span class="indice-de">de 100</span>
+            <span class="indice-classe" id="indice-classe"></span>
+          </div>
+          <div>
+            <h3 class="rotulo">Índice de risco</h3>
+            <div class="escala" aria-hidden="true">
+              <div class="escala-trilha"><div class="escala-preench" id="escala-preench"></div></div>
+              <div class="escala-marcador oculto" id="escala-marcador"></div>
+              <svg viewBox="0 0 100 6" preserveAspectRatio="none" id="regua"></svg>
+              <div class="escala-numeros"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="rotulo">Probabilidade por classe</h3>
+            <div class="empilhada" id="empilhada" aria-hidden="true"><i style="background:var(--baixo)"></i><i style="background:var(--medio)"></i><i style="background:var(--alto)"></i></div>
+            <div class="legenda" id="legenda"></div>
+          </div>
+          <div id="detalhe" aria-live="polite"></div>
         </div>
-        <div class="resultado-corpo" id="resultado-conteudo" aria-live="polite"></div>
       </section>
 
-      <section class="cartao cartao-registro" id="registro" tabindex="-1" aria-labelledby="titulo-registro">
-        <div class="cartao-cabeca">
-          <h2 class="cartao-titulo titulo-fonte" id="titulo-registro">Registro de classificações</h2>
-          <span class="cartao-nota" id="registro-total"></span>
-        </div>
+      <section class="painel registro" id="registro" tabindex="-1" aria-labelledby="titulo-registro">
+        <div class="painel-cabeca"><h2 class="painel-titulo" id="titulo-registro">Registro</h2><span class="painel-nota" id="registro-total"></span></div>
         <div class="registro-corpo" id="registro-lista" tabindex="0" aria-label="Últimas classificações"></div>
       </section>
     </main>
 
     <footer class="rodape" id="sobre" tabindex="-1" aria-label="Sobre o modelo">
-      <p>Modelo treinado sobre dados públicos de apostadores de uma operadora europeia, com registros entre 2000 e 2010 (Gray, LaPlante e Shaffer, 2012). Desenvolvido como prova de conceito. A classificação indica padrão de comportamento compatível com risco e não constitui diagnóstico. Os campos iniciam na mediana do conjunto de treino. <a href="https://github.com/luccaschneider/gambling-risk-classifier" target="_blank" rel="noopener">Documentação e limitações do modelo</a></p>
+      <p>Modelo treinado sobre dados públicos de apostadores de uma operadora europeia, com registros entre 2000 e 2010 (Gray, LaPlante e Shaffer, 2012). Prova de conceito: a classificação indica comportamento compatível com risco e não é diagnóstico. Os campos começam na mediana do conjunto de treino. <a href="https://github.com/luccaschneider/gambling-risk-classifier" target="_blank" rel="noopener">Documentação e limitações do modelo</a></p>
     </footer>
   </div>
 </div>
@@ -631,9 +390,9 @@ html.trocando-tema, html.trocando-tema * {
 
 /* ------------------------------------------------------------------ dados */
 const NIVEIS = [
-  { chave: "Baixo risco", nome: "Baixo risco", curto: "Baixo", cor: "var(--risco-baixo)", classe: "baixo" },
-  { chave: "Medio risco", nome: "Médio risco", curto: "Médio", cor: "var(--risco-medio)", classe: "medio" },
-  { chave: "Alto risco",  nome: "Alto risco",  curto: "Alto",  cor: "var(--risco-alto)",  classe: "alto"  },
+  { chave: "Baixo risco", nome: "Risco baixo", curto: "Baixo", cor: "var(--baixo)", posicao: .18 },
+  { chave: "Medio risco", nome: "Risco médio", curto: "Médio", cor: "var(--medio)", posicao: .5 },
+  { chave: "Alto risco",  nome: "Risco alto",  curto: "Alto",  cor: "var(--alto)",  posicao: .91 },
 ];
 
 // mediana do conjunto de treino (valor inicial dos campos).
@@ -670,127 +429,73 @@ const PERFIS = {
     concentracao_apostas_dias_ativos: 0.69478, media_apostas_por_produto: 1826.25 } },
 };
 
-// quatro campos por secao, para a grade de 4 colunas fechar em 3 linhas.
-// "Apostas por dia ativo" saiu de Volume para Padrao temporal: e o ritmo diario.
-const CAMPOS = {
-  volume: [
-    ["total_dias_ativos", "Dias ativos", 1, "Dias distintos com pelo menos uma aposta."],
-    ["numero_total_apostas", "Total de apostas", 1, "Soma das apostas feitas no período."],
-    ["variedade_produtos", "Produtos distintos", 1, "Tipos de produto jogados (esportes, cassino, poker…)."],
-    ["media_apostas_por_produto", "Apostas por produto", 0.01, "Total de apostas dividido pelos produtos distintos."],
-  ],
-  valores: [
-    ["total_apostado", "Total apostado", 0.01, "Soma de todo o valor apostado (Turnover)."],
-    ["total_perdas", "Total de perdas (Hold)", 0.01, "Receita líquida da casa. Negativo se o jogador ganhou no saldo."],
-    ["media_diaria_apostada", "Média diária apostada", 0.01, "Valor médio apostado nos dias com atividade."],
-    ["taxa_perda_sobre_apostado", "Taxa de perda", 0.0001, "Perdas divididas pelo total apostado."],
-  ],
-  temporal: [
-    ["intensidade_apostas_por_dia_ativo", "Apostas por dia ativo", 0.01, "Total de apostas dividido pelos dias ativos."],
-    ["desvio_padrao_apostado", "Desvio padrão diário", 0.01, "Irregularidade do valor apostado de um dia para outro."],
-    ["tendencia_crescimento_apostado", "Tendência de crescimento", 0.0001, "Inclinação da série diária. Positivo = apostas crescentes."],
-    ["concentracao_apostas_dias_ativos", "Concentração (Gini)", 0.0001, "0 = distribuído entre os dias; perto de 1 = concentrado em poucos dias."],
-  ],
-};
+// quatro campos por grupo; [chave, rotulo, o que mede]
+const CAMPOS = [
+  ["Volume e frequência", [
+    ["total_dias_ativos", "Dias ativos", "Dias distintos com pelo menos uma aposta."],
+    ["numero_total_apostas", "Total de apostas", "Soma das apostas feitas no período."],
+    ["variedade_produtos", "Produtos distintos", "Tipos de produto jogados: esportes, cassino, pôquer."],
+    ["media_apostas_por_produto", "Apostas por produto", "Total de apostas dividido pelos produtos distintos."],
+  ]],
+  ["Valores e perdas", [
+    ["total_apostado", "Total apostado", "Soma de todo o valor apostado (Turnover)."],
+    ["total_perdas", "Total de perdas", "Receita líquida da casa (Hold). Negativo se o apostador ganhou no saldo."],
+    ["media_diaria_apostada", "Média diária apostada", "Valor médio apostado nos dias com atividade."],
+    ["taxa_perda_sobre_apostado", "Taxa de perda", "Perdas divididas pelo total apostado."],
+  ]],
+  ["Padrão temporal", [
+    ["intensidade_apostas_por_dia_ativo", "Apostas por dia ativo", "Total de apostas dividido pelos dias ativos."],
+    ["desvio_padrao_apostado", "Desvio padrão diário", "Quanto o valor apostado varia de um dia para outro."],
+    ["tendencia_crescimento_apostado", "Tendência de crescimento", "Inclinação da série diária. Positivo: apostas crescendo."],
+    ["concentracao_apostas_dias_ativos", "Concentração (Gini)", "Perto de 0: apostas espalhadas pelos dias. Perto de 1: concentradas em poucos dias."],
+  ]],
+];
+const ROTULOS = Object.fromEntries(CAMPOS.flatMap(([, lista]) => lista.map(([chave, rotulo]) => [chave, rotulo])));
 
 const INTEIROS = new Set(["total_dias_ativos", "numero_total_apostas", "variedade_produtos"]);
-
 // Estas tres carregam informacao abaixo da segunda casa: arredonda-las para 2
 // casas muda a classe de parte dos usuarios, entao sao exibidas com 4.
 // O arredondamento e SEMPRE so de exibicao - o valor cheio fica em
 // dataset.exato e e ele que vai para a API.
-const CASAS_EXTRAS = new Set([
-  "taxa_perda_sobre_apostado",
-  "tendencia_crescimento_apostado",
-  "concentracao_apostas_dias_ativos",
-]);
+const CASAS_EXTRAS = new Set(["taxa_perda_sobre_apostado", "tendencia_crescimento_apostado", "concentracao_apostas_dias_ativos"]);
 
+// intervencoes e acoes (src/intervencoes.py); o codigo cru fica visivel e no title
+const INTERVENCAO_TITULO = {
+  MONITORAMENTO_INFORMATIVO: "Notificação informativa",
+  LIMITE_TEMPORARIO: "Limite de depósito e pausas",
+  SUSPENSAO_TEMPORARIA: "Suspensão e suporte",
+};
+const ACAO_TIPO = {
+  ENVIAR_NOTIFICACAO: "Enviar notificação",
+  APLICAR_LIMITE_DEPOSITO: "Aplicar limite de depósito",
+  SUGERIR_PAUSA: "Sugerir pausa",
+  SUSPENDER_CONTA: "Suspender conta",
+  ENCAMINHAR_SUPORTE: "Encaminhar ao suporte",
+};
+
+const $ = id => document.getElementById(id);
 const semMovimento = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ------------------------------------------------------------------- tema */
-const botaoTema = document.getElementById("botao-tema");
-const temaDica = document.getElementById("tema-dica");
-
-function aplicarTema(tema, comTransicao) {
-  const raiz = document.documentElement;
-  if (comTransicao && !semMovimento()) {
-    raiz.classList.add("trocando-tema");
-    setTimeout(() => raiz.classList.remove("trocando-tema"), 220);
-  }
-  raiz.setAttribute("data-theme", tema);
-  const proximo = tema === "dark" ? "claro" : "escuro";
-  botaoTema.setAttribute("aria-label", `Ativar tema ${proximo}`);
-  temaDica.textContent = `Ativar tema ${proximo}`;
-}
-
-aplicarTema(document.documentElement.getAttribute("data-theme") || "light", false);
-
-botaoTema.addEventListener("click", () => {
-  const novo = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  aplicarTema(novo, true);
-  try { localStorage.setItem("painel-tema", novo === "dark" ? "escuro" : "claro"); } catch (e) {}
-});
-
-// sem escolha salva, acompanha a mudanca de preferencia do sistema
-if (window.matchMedia) {
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
-    let salvo = null;
-    try { salvo = localStorage.getItem("painel-tema"); } catch (err) {}
-    if (!salvo) aplicarTema(e.matches ? "dark" : "light", true);
-  });
-}
-
-/* ------------------------------------------------------- navegacao lateral */
-// as tres entradas levam a areas da mesma tela (sem rotas novas): foca a area,
-// marca o item ativo e realca a area por um instante
-const itensNavegacao = document.querySelectorAll(".item-lateral[data-alvo]");
-itensNavegacao.forEach(item => {
-  item.addEventListener("click", evento => {
-    evento.preventDefault();
-    const alvo = document.getElementById(item.dataset.alvo);
-    const telaUnica = window.matchMedia && matchMedia("(min-width: 1040px)").matches;
-    alvo.focus({ preventScroll: telaUnica });
-    if (!telaUnica) alvo.scrollIntoView({ block: "start", behavior: semMovimento() ? "auto" : "smooth" });
-    itensNavegacao.forEach(i => i.removeAttribute("aria-current"));
-    item.setAttribute("aria-current", "true");
-    document.querySelectorAll(".realcado").forEach(el => el.classList.remove("realcado"));
-    alvo.classList.add("realcado");
-    setTimeout(() => alvo.classList.remove("realcado"), 1200);
-  });
-});
-
-/* ------------------------------------------------------- montagem do form */
-function criarCampo([chave, rotulo, , dica]) {
+function escapar(texto) {
   const div = document.createElement("div");
-  div.className = "campo";
-  const id = "campo-" + chave;
-  div.innerHTML =
-    `<label for="${id}">${rotulo}</label>` +
-    `<input id="${id}" name="${chave}" type="text" inputmode="decimal" spellcheck="false" aria-describedby="${id}-dica">` +
-    `<span class="dica" id="${id}-dica" role="tooltip">${dica}</span>`;
-  div.querySelector("label").title = rotulo;
-  return div;
+  div.textContent = texto;
+  return div.innerHTML;
 }
 
-for (const [grupo, lista] of Object.entries(CAMPOS)) {
-  const alvo = document.getElementById("grupo-" + grupo);
-  lista.forEach(def => alvo.appendChild(criarCampo(def)));
-}
+// numeros com virgula decimal (pt-BR); o que vai e vem da API usa ponto
+function decimal(valor, casas) { return valor.toFixed(casas).replace(".", ","); }
+// textos prontos da API trazem ponto decimal; troca so entre digitos
+function virgulaDecimal(texto) { return String(texto).replace(/(\d)\.(\d)/g, "$1,$2"); }
 
-// numeros exibidos com virgula decimal (pt-BR); o que vai e vem da API
-// continua com ponto
-function decimal(valor, casas) {
-  return valor.toFixed(casas).replace(".", ",");
-}
-
-// textos que vem prontos da API (avisos, erros) trazem ponto decimal; troca so
-// entre digitos, para nao tocar em nomes de variaveis nem em reticencias
-function virgulaDecimal(texto) {
-  return String(texto).replace(/(\d)\.(\d)/g, "$1,$2");
+// avisos da API citam as variaveis pelo nome tecnico; mostra o rotulo do campo
+function traduzirAviso(texto) {
+  let t = String(texto);
+  for (const [chave, rotulo] of Object.entries(ROTULOS)) t = t.split(chave).join(rotulo);
+  return virgulaDecimal(t.replace(/\s*\/\s*/g, " ÷ "));
 }
 
 function formatarExibicao(chave, valor) {
-  if (INTEIROS.has(chave)) return String(valor);   // contagem: sem decimais
+  if (INTEIROS.has(chave)) return String(valor);
   return decimal(valor, CASAS_EXTRAS.has(chave) ? 4 : 2);
 }
 
@@ -801,272 +506,264 @@ function lerNumero(texto) {
   return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(limpo) ? Number(limpo) : NaN;
 }
 
-function preencher(valores) {
-  for (const [chave, valor] of Object.entries(valores)) {
-    const campo = document.querySelector(`[name="${chave}"]`);
-    if (!campo) continue;
-    campo.dataset.exato = String(valor);              // valor cheio, usado no envio
-    campo.value = formatarExibicao(chave, valor);     // versao arredondada, so na tela
+/* ------------------------------------------------------------------- tema */
+const botaoTema = $("botao-tema");
+function aplicarTema(tema, comTransicao) {
+  const raiz = document.documentElement;
+  if (comTransicao && !semMovimento()) {
+    raiz.classList.add("trocando-tema");
+    setTimeout(() => raiz.classList.remove("trocando-tema"), 220);
+  }
+  raiz.setAttribute("data-theme", tema);
+  const rotulo = `Ativar tema ${tema === "dark" ? "claro" : "escuro"}`;
+  botaoTema.setAttribute("aria-label", rotulo);
+  botaoTema.title = rotulo;
+}
+aplicarTema(document.documentElement.getAttribute("data-theme") || "light", false);
+botaoTema.addEventListener("click", () => {
+  const novo = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  aplicarTema(novo, true);
+  try { localStorage.setItem("painel-tema", novo === "dark" ? "escuro" : "claro"); } catch (e) {}
+});
+// sem escolha salva, acompanha a mudanca de preferencia do sistema
+if (window.matchMedia) {
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+    let salvo = null;
+    try { salvo = localStorage.getItem("painel-tema"); } catch (err) {}
+    if (!salvo) aplicarTema(e.matches ? "dark" : "light", true);
+  });
+}
+
+/* ------------------------------------------------------- navegacao lateral */
+// cada item rola ate a sua secao, foca e destaca por um instante
+const itensNavegacao = document.querySelectorAll(".icone-botao[data-alvo]");
+itensNavegacao.forEach(item => item.addEventListener("click", () => {
+  const alvo = $(item.dataset.alvo);
+  alvo.scrollIntoView({ behavior: semMovimento() ? "auto" : "smooth", block: "start" });
+  alvo.focus({ preventScroll: true });
+  itensNavegacao.forEach(i => i.removeAttribute("aria-current"));
+  item.setAttribute("aria-current", "true");
+  alvo.classList.remove("destaque"); void alvo.offsetWidth; alvo.classList.add("destaque");
+}));
+
+/* ------------------------------------------------------- montagem do form */
+const campos = [];
+CAMPOS.forEach(([titulo, lista]) => {
+  const grupo = document.createElement("fieldset");
+  grupo.innerHTML = `<legend>${titulo}</legend><div class="linhas"></div>`;
+  lista.forEach(([chave, rotulo, ajuda]) => {
+    const linha = document.createElement("label");
+    linha.className = "linha";
+    linha.innerHTML = `<span>${rotulo}</span><input name="${chave}" type="text" inputmode="decimal" spellcheck="false" aria-describedby="ajuda">`;
+    linha.title = rotulo;
+    const campo = linha.querySelector("input");
+    campo.addEventListener("focus", () => trocarAjuda(ajuda));
+    campo.addEventListener("input", () => {
+      delete campo.dataset.exato;   // editado a mao: o valor digitado passa a mandar
+      campo.removeAttribute("aria-invalid");
+      marcarExemplo(null);
+    });
+    campos.push(campo);
+    grupo.querySelector(".linhas").appendChild(linha);
+  });
+  $("grupos").appendChild(grupo);
+});
+
+function trocarAjuda(texto) {
+  const p = $("ajuda");
+  if (p.textContent === texto) return;
+  if (semMovimento()) { p.textContent = texto; return; }
+  p.classList.add("saindo");
+  setTimeout(() => { p.textContent = texto; p.classList.remove("saindo"); }, 160);
+}
+
+function preencher(valores, realcar) {
+  for (const campo of campos) {
+    const valor = valores[campo.name];
+    const texto = formatarExibicao(campo.name, valor);
+    if (realcar && campo.value !== texto) {
+      campo.classList.remove("mudou"); void campo.offsetWidth; campo.classList.add("mudou");
+    }
+    campo.dataset.exato = String(valor);   // valor cheio, usado no envio
+    campo.value = texto;                    // versao arredondada, so na tela
     campo.removeAttribute("aria-invalid");
   }
 }
 
-// o que sai daqui e o valor cheio enquanto o campo nao for editado a mao;
-// assim que o operador digita, o que ele escreveu passa a valer
+// valor cheio enquanto o campo nao for editado; depois, o que foi digitado
 function valorParaEnvio(campo) {
   const exato = campo.dataset.exato;
   return exato ? Number(exato) : lerNumero(campo.value);
 }
 
-/* --------------------------------------------------------- botoes perfil */
-const containerPerfis = document.getElementById("perfis");
+/* ----------------------------------------------------- apostadores reais */
 NIVEIS.forEach(nivel => {
   const perfil = PERFIS[nivel.chave];
   const botao = document.createElement("button");
   botao.type = "button";
-  botao.className = "perfil";
+  botao.className = "exemplo";
   botao.style.setProperty("--nivel", nivel.cor);
   botao.setAttribute("aria-pressed", "false");
-  botao.title = `Preencher com o usuário ${perfil.id}, classificado como ${nivel.nome.toLowerCase()}`;
-  botao.innerHTML = `<span class="ponto" aria-hidden="true"></span><span class="rotulo">${nivel.nome}</span><span class="id">#${perfil.id}</span>`;
-  botao.addEventListener("click", () => {
-    preencher(perfil.valores);
-    document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
-    botao.setAttribute("aria-pressed", "true");
-  });
-  containerPerfis.appendChild(botao);
+  botao.title = `Preencher com o apostador ${perfil.id}, classificado como ${nivel.nome.toLowerCase()}`;
+  botao.innerHTML = `<span class="ponto" aria-hidden="true"></span>${nivel.nome}<span class="id">${perfil.id}</span>`;
+  botao.addEventListener("click", () => { preencher(perfil.valores, true); marcarExemplo(botao); });
+  $("exemplos").appendChild(botao);
 });
+function marcarExemplo(alvo) {
+  document.querySelectorAll(".exemplo").forEach(b => b.setAttribute("aria-pressed", b === alvo ? "true" : "false"));
+}
+$("botao-medianas").addEventListener("click", () => { preencher(MEDIANAS, true); marcarExemplo(null); });
+preencher(MEDIANAS, false);
 
-document.getElementById("botao-restaurar").addEventListener("click", () => {
-  preencher(MEDIANAS);
-  document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
-});
+/* --------------------------------------------------------------- resultado */
+// regua da escala: marca a cada 5, maior a cada 25
+$("regua").innerHTML = Array.from({ length: 21 }, (_, i) =>
+  `<line x1="${i * 5}" x2="${i * 5}" y1="0" y2="${i % 5 ? 3 : 6}" vector-effect="non-scaling-stroke"></line>`).join("");
 
-document.querySelectorAll(".campo input").forEach(campo => {
-  campo.addEventListener("input", () => {
-    delete campo.dataset.exato;   // editado a mao: o valor digitado passa a mandar
-    campo.removeAttribute("aria-invalid");
-    document.querySelectorAll(".perfil").forEach(b => b.setAttribute("aria-pressed", "false"));
-  });
-});
-
-preencher(MEDIANAS);
-
-/* ------------------------------------------------------------- indicadores */
-const kpi = id => document.getElementById(id);
-const TRACO = `<span class="vazio-traco">—</span>`;
+const TRACO = `<span class="traco">—</span>`;
 let classificacoesSessao = 0;
+let indiceAnterior = 0;
+let destacarNova = false;
 
-function selo(nivel, texto, grande) {
-  return `<span class="selo${grande ? " selo-grande" : ""}" style="--nivel:${nivel.cor}">${texto}</span>`;
+// numero que anda do valor anterior ao novo, junto com a escala
+function contar(el, de, ate, sufixo) {
+  const escrever = v => { el.innerHTML = Math.round(v) + sufixo; };
+  if (semMovimento()) return escrever(ate);
+  const inicio = performance.now();
+  const passo = agora => {
+    const t = Math.min(1, (agora - inicio) / 900);
+    escrever(de + (ate - de) * (1 - Math.pow(1 - t, 3)));
+    if (t < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
 }
 
-function limparIndicadores() {
-  kpi("kpi-indice").innerHTML = TRACO;
-  kpi("kpi-indice-selo").innerHTML = "";
-  kpi("kpi-classe").innerHTML = `<span class="indicador-valor titulo-fonte vazio-traco">—</span>`;
-  kpi("kpi-classe-nota").textContent = "aguardando classificação";
-  kpi("kpi-prob").innerHTML = TRACO;
-  kpi("kpi-prob-selo").innerHTML = "";
-}
-
-function atualizarIndicadores(dados, nivel, valorIndice) {
-  const pClasse = (dados.probabilidades[nivel.chave] ?? 0) * 100;
-  kpi("kpi-indice").innerHTML = `${valorIndice}<small>/100</small>`;
-  kpi("kpi-indice-selo").innerHTML = selo(nivel, nivel.curto);
-  kpi("kpi-classe").innerHTML = selo(nivel, nivel.nome, true);
-  kpi("kpi-classe-nota").textContent = `ação: ${ACAO_LEGIVEL[dados.intervencao.codigo] ?? dados.intervencao.codigo}`;
-  kpi("kpi-prob").textContent = `${decimal(pClasse, 1)}%`;
-  kpi("kpi-prob-selo").innerHTML = selo(nivel, nivel.curto);
-  kpi("kpi-sessao").textContent = String(classificacoesSessao);
-}
-
-/* ------------------------------------------------------------------- anel */
-const RAIO = 78, CIRC = 2 * Math.PI * RAIO;
-
-// anel do indice: trilha, arco na cor da classe e marcas de escala a cada 10
-function anelSvg(nivel) {
-  const marcas = Array.from({ length: 20 }, (_, i) => {
-    const ang = (i / 20) * 2 * Math.PI - Math.PI / 2;
-    const maior = i % 5 === 0;
-    const r1 = 92, r2 = maior ? 99 : 96;
-    const p = r => `${(100 + r * Math.cos(ang)).toFixed(2)} ${(100 + r * Math.sin(ang)).toFixed(2)}`;
-    return `<path class="anel-marca${maior ? " maior" : ""}" d="M ${p(r1)} L ${p(r2)}"></path>`;
-  }).join("");
-  const cor = nivel ? ` style="--nivel:${nivel.cor}"` : "";
-  return `
-    <svg viewBox="0 0 200 200" aria-hidden="true">
-      ${marcas}
-      <circle class="anel-trilha" cx="100" cy="100" r="${RAIO}"></circle>
-      ${nivel ? `<circle class="anel-arco" id="anel-arco"${cor} cx="100" cy="100" r="${RAIO}"
-                  stroke-dasharray="${CIRC.toFixed(2)}" stroke-dashoffset="${CIRC.toFixed(2)}"
-                  transform="rotate(-90 100 100)"></circle>` : ""}
-    </svg>`;
-}
-
-// indice continuo 0..1: media das probabilidades ponderada pelo nivel
-// usado apenas se a API nao devolver indice_risco; o valor oficial vem do servidor
+// indice continuo 0..1, usado so se a API nao devolver indice_risco
 function indiceRisco(prob) {
   return (prob["Medio risco"] ?? 0) * 0.5 + (prob["Alto risco"] ?? 0) * 1;
 }
 
-/* ------------------------------------------------------------ resultado */
-const cartaoResultado = document.getElementById("cartao-resultado");
-const conteudo = document.getElementById("resultado-conteudo");
-const nota = document.getElementById("resultado-nota");
-
-function escapar(texto) {
-  const div = document.createElement("div");
-  div.textContent = texto;
-  return div.innerHTML;
+function mostrarVazio() {
+  $("detalhe").innerHTML = `<p class="vazio">Escolha um apostador de exemplo ou ajuste as variáveis e clique em Classificar.</p>`;
 }
 
-function mostrarVazio() {
-  conteudo.innerHTML = `
-    <div class="vazio">
-      <div class="anel">${anelSvg(null)}<div class="anel-centro"><span class="anel-valor titulo-fonte vazio-traco">—</span></div></div>
-      <p>Escolha um perfil de exemplo ou ajuste as variáveis e clique em <strong>Classificar</strong> para ver o índice de risco.</p>
-    </div>`;
+function limparResultado() {
+  $("indice-valor").innerHTML = TRACO;
+  $("indice-classe").innerHTML = "";
+  $("escala-preench").style.transform = "scaleX(0)";
+  $("escala-marcador").classList.add("oculto");
+  for (const parte of $("empilhada").children) parte.style.transform = "translateX(0%) scaleX(0)";
+  $("legenda").innerHTML = "";
+  $("resultado-hora").textContent = "";
+  ["r-indice", "r-classe", "r-prob"].forEach(id => { $(id).innerHTML = TRACO; $(id).style.removeProperty("--nivel"); });
+  $("r-classe").classList.remove("texto");
+  $("r-classe-nota").textContent = "";
+  indiceAnterior = 0;
 }
 
 function mostrarErro(titulo, mensagem) {
-  nota.textContent = "";
-  limparIndicadores();
-  conteudo.innerHTML = `<div class="erro" role="alert"><span class="rotulo-secao">${escapar(titulo)}</span>${escapar(mensagem)}</div>`;
-}
-
-// conta de 0 ate o valor final, em sincronia com o preenchimento do anel
-function contar(el, alvo, duracao) {
-  if (semMovimento()) { el.textContent = String(alvo); return; }
-  const inicio = performance.now();
-  const passo = agora => {
-    const t = Math.min(1, (agora - inicio) / duracao);
-    const suave = 1 - Math.pow(1 - t, 3);
-    el.textContent = String(Math.round(alvo * suave));
-    if (t < 1) requestAnimationFrame(passo);
-  };
-  requestAnimationFrame(passo);
+  limparResultado();
+  $("detalhe").innerHTML = `<div class="erro" role="alert"><strong>${escapar(titulo)}</strong>${escapar(mensagem)}</div>`;
 }
 
 function mostrarResultado(dados) {
   const nivel = NIVEIS.find(n => n.chave === dados.classe_prevista) ?? NIVEIS[0];
   const indice = dados.indice_risco ?? indiceRisco(dados.probabilidades);
   const valorIndice = Math.round(indice * 100);
-
-  const barras = NIVEIS.map(n => {
-    const p = (dados.probabilidades[n.chave] ?? 0);
-    return `
-    <div class="prob">
-      <span class="nome"><span class="ponto" style="background:${n.cor}" aria-hidden="true"></span>${n.nome}</span>
-      <div class="trilha"><div class="barra" style="background:${n.cor};width:${(p * 100).toFixed(2)}%"></div></div>
-      <span class="valor">${decimal(p * 100, 1)}%</span>
-    </div>`;
-  }).join("");
-
-  const avisos = dados.avisos?.length
-    ? `<div class="avisos">
-         <span class="rotulo-secao">Avisos de validação</span>
-         ${dados.avisos.map(a => `<div class="aviso">${escapar(virgulaDecimal(a))}</div>`).join("")}
-       </div>`
-    : "";
-
-  nota.textContent = new Date().toLocaleTimeString("pt-BR");
-  conteudo.innerHTML = `
-    <div>
-      <div class="resultado-topo">
-        <div class="anel-bloco">
-          <div class="anel" role="img" aria-label="Índice de risco ${valorIndice} de 100, calculado a partir das três probabilidades">
-            ${anelSvg(nivel)}
-            <div class="anel-centro" aria-hidden="true">
-              <span class="anel-valor titulo-fonte" id="medidor-valor" style="color:${nivel.cor}">0</span>
-              <span class="anel-legenda">Índice de risco</span>
-            </div>
-          </div>
-          <span class="anel-nota" aria-hidden="true">calculado a partir das três probabilidades</span>
-        </div>
-        <div class="resultado-probs">
-          <h3 class="rotulo-secao" style="margin-bottom:12px">Probabilidades por classe</h3>
-          <div class="probabilidades">${barras}</div>
-        </div>
-      </div>
-      <div class="intervencao" style="--nivel:${nivel.cor}">
-        <div class="intervencao-cabeca">
-          <span class="rotulo-secao">Intervenção recomendada</span>
-          <span class="intervencao-codigo">${escapar(dados.intervencao.codigo)}</span>
-        </div>
-        <div class="texto">${escapar(dados.intervencao.descricao)}</div>
-        <div class="acoes-lista">
-          ${dados.intervencao.acoes.map(a => `<span class="acao-chip">${escapar(a.tipo)}</span>`).join("")}
-        </div>
-      </div>
-      ${avisos}
-    </div>`;
-
+  const probs = NIVEIS.map(n => (dados.probabilidades[n.chave] ?? 0) * 100);
+  const pClasse = probs[NIVEIS.indexOf(nivel)];
+  const codigo = dados.intervencao.codigo;
+  const titulo = INTERVENCAO_TITULO[codigo] ?? codigo;
   classificacoesSessao += 1;
-  atualizarIndicadores(dados, nivel, valorIndice);
 
-  // dois quadros: o primeiro pinta o anel vazio, o segundo dispara o preenchimento
-  const arco = document.getElementById("anel-arco");
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    arco.style.strokeDashoffset = (CIRC * (1 - indice)).toFixed(2);
-    contar(document.getElementById("medidor-valor"), valorIndice, 900);
-  }));
+  // indice e escala
+  const valor = $("indice-valor");
+  if (valor.querySelector(".traco")) valor.textContent = "0";
+  contar(valor, indiceAnterior, valorIndice, "");
+  $("indice-classe").innerHTML = `<span class="ponto" style="--nivel:${nivel.cor}" aria-hidden="true"></span>${nivel.nome}`;
+  $("escala-preench").style.setProperty("--nivel", nivel.cor);
+  $("escala-preench").style.transform = `scaleX(${valorIndice / 100})`;
+  $("escala-marcador").classList.remove("oculto");
+  $("escala-marcador").style.transform = `translateX(${valorIndice}%)`;
+  $("resultado-hora").textContent = `às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+
+  // barra de probabilidades: cada parte anda e cresce com transform
+  let inicio = 0;
+  [...$("empilhada").children].forEach((parte, i) => {
+    parte.style.transform = `translateX(${inicio}%) scaleX(${probs[i] / 100})`;
+    inicio += probs[i];
+  });
+  const lider = probs.indexOf(Math.max(...probs));
+  $("legenda").innerHTML = NIVEIS.map((n, i) =>
+    `<div class="${i === lider ? "lider" : ""}"><span class="ponto" style="--nivel:${n.cor}" aria-hidden="true"></span>${n.curto} <b>${decimal(probs[i], 1)}%</b></div>`).join("");
+
+  // intervencao e avisos
+  const acoes = dados.intervencao.acoes.map(a => ACAO_TIPO[a.tipo] ?? a.tipo).join(", ");
+  const avisos = dados.avisos?.length
+    ? `<div class="avisos entra">${dados.avisos.map(a => `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 4 3 20h18z"/><path d="M12 10v4M12 17v.1"/></svg>${escapar(traduzirAviso(a))}</div>`).join("")}</div>`
+    : "";
+  $("detalhe").innerHTML = `
+    <div class="intervencao entra">
+      <div class="intervencao-topo"><span class="rotulo" style="margin:0">Intervenção recomendada</span><span class="intervencao-codigo">${escapar(codigo)}</span></div>
+      <h3>${escapar(titulo)}</h3>
+      <p>${escapar(dados.intervencao.descricao)}</p>
+      <div class="intervencao-acoes">Ações: <span>${escapar(acoes)}</span></div>
+    </div>${avisos}`;
+
+  // resumo
+  contar($("r-indice"), indiceAnterior, valorIndice, "<small>/100</small>");
+  ["r-indice", "r-classe", "r-prob"].forEach(id => $(id).style.setProperty("--nivel", nivel.cor));
+  $("r-classe").classList.add("texto");
+  $("r-classe").textContent = nivel.nome;
+  $("r-classe-nota").textContent = titulo;
+  $("r-prob").textContent = `${decimal(pClasse, 1)}%`;
+  $("r-sessao").textContent = String(classificacoesSessao);
+  indiceAnterior = valorIndice;
+
+  // marca do cabecalho acompanha a classe
+  const marca = $("marca");
+  marca.style.setProperty("--k", nivel.posicao);
+  marca.style.setProperty("--marca-cor", nivel.cor);
 }
 
 /* ------------------------------------------------ registro de decisoes */
-const ACAO_LEGIVEL = {
-  MONITORAMENTO_INFORMATIVO: "Notificação informativa",
-  LIMITE_TEMPORARIO: "Limite de depósito + pausas",
-  SUSPENSAO_TEMPORARIA: "Suspensão + suporte",
-};
-
 async function carregarRegistros() {
-  const lista = document.getElementById("registro-lista");
-  const total = document.getElementById("registro-total");
-  const notaSessao = document.getElementById("kpi-sessao-nota");
+  const lista = $("registro-lista");
+  const total = $("registro-total");
   try {
     const resposta = await fetch("/registros?limite=8");
     if (!resposta.ok) throw new Error("falha");
     const dados = await resposta.json();
-
     total.textContent = dados.total_guardado
       ? `${dados.total_guardado} de até ${dados.limite_tabela} guardadas`
       : "";
-    notaSessao.textContent = dados.total_guardado
-      ? `${dados.total_guardado} guardadas no registro`
-      : "registro ainda vazio";
-
     if (!dados.registros.length) {
       lista.innerHTML = `<p class="registro-vazio">Nenhuma classificação registrada ainda.</p>`;
       return;
     }
-
-    const linhas = dados.registros.map(r => {
+    const linhas = dados.registros.map((r, i) => {
       const nivel = NIVEIS.find(n => n.chave === r.classe_prevista) ?? NIVEIS[0];
       const proba = (r.probabilidades?.[r.classe_prevista] ?? 0) * 100;
       const hora = new Date(r.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      const acao = ACAO_LEGIVEL[r.intervencao_codigo] ?? r.intervencao_codigo;
+      const acao = INTERVENCAO_TITULO[r.intervencao_codigo] ?? r.intervencao_codigo;
       return `
-        <tr class="registro-linha">
-          <td class="registro-hora">${escapar(hora)}</td>
-          <td><span class="registro-classe"><span class="registro-ponto" style="background:${nivel.cor}" aria-hidden="true"></span>${nivel.nome}</span></td>
-          <td class="registro-prob direita">${decimal(proba, 1)}%</td>
-          <td class="registro-acao" title="${escapar(r.intervencao_codigo)}">${escapar(acao)}</td>
+        <tr class="${i === 0 && destacarNova ? "nova" : ""}">
+          <td class="num">${escapar(hora)}</td>
+          <td><span class="classe"><span class="ponto" style="--nivel:${nivel.cor}" aria-hidden="true"></span>${nivel.nome}</span></td>
+          <td class="direita">${decimal(proba, 1)}%</td>
+          <td title="${escapar(r.intervencao_codigo)}">${escapar(acao)}</td>
         </tr>`;
     }).join("");
-
     lista.innerHTML = `
-      <table class="registro-tabela">
-        <thead><tr>
-          <th scope="col">Horário</th><th scope="col">Classe</th>
-          <th scope="col" class="direita">Probabilidade</th><th scope="col">Ação</th>
-        </tr></thead>
+      <table>
+        <thead><tr><th scope="col">Hora</th><th scope="col">Classe</th><th scope="col" class="direita">Probabilidade</th><th scope="col">Intervenção</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>`;
   } catch {
     lista.innerHTML = `<p class="registro-vazio">Não foi possível carregar o registro.</p>`;
     total.textContent = "";
-    notaSessao.textContent = "registro indisponível";
+  } finally {
+    destacarNova = false;
   }
 }
 
@@ -1076,42 +773,45 @@ function mensagemDeErro(detail) {
   if (Array.isArray(detail)) {
     return detail.map(item => {
       const campo = Array.isArray(item.loc) ? item.loc.slice(1).join(".") : "campo";
-      return `${campo}: ${item.msg}`;
+      return `${ROTULOS[campo] ?? campo}: ${item.msg}`;
     }).join(" · ");
   }
   return "Resposta de erro não reconhecida.";
 }
 
 async function verificarSaude() {
-  const caixa = document.getElementById("status");
-  const texto = document.getElementById("status-texto");
+  const caixa = $("status");
+  const texto = $("status-texto");
+  let mensagem;
   try {
     const resposta = await fetch("/saude");
     const dados = await resposta.json();
     if (resposta.ok && dados.modelo_carregado) {
       caixa.classList.add("ok");
-      texto.textContent = `modelo carregado — ${dados.n_variaveis_esperadas} variáveis`;
+      mensagem = `Modelo carregado, ${dados.n_variaveis_esperadas} variáveis`;
     } else {
       caixa.classList.add("falha");
-      texto.textContent = "modelo indisponível";
+      mensagem = "Modelo indisponível";
     }
   } catch {
     caixa.classList.add("falha");
-    texto.textContent = "API fora do ar";
+    mensagem = "API fora do ar";
   }
+  texto.textContent = mensagem;
+  caixa.title = mensagem;
 }
 
-const botao = document.getElementById("botao-classificar");
-const rotuloBotao = document.getElementById("rotulo-classificar");
+const botao = $("botao-classificar");
+const rotuloBotao = $("rotulo-classificar");
 let classificando = false;   // trava contra envio duplo (clique repetido, Enter num campo)
 
-document.getElementById("formulario").addEventListener("submit", async evento => {
+$("formulario").addEventListener("submit", async evento => {
   evento.preventDefault();
   if (classificando) return;
 
   const corpo = {};
-  for (const campo of document.querySelectorAll(".campo input")) {
-    const rotulo = campo.previousElementSibling.textContent;
+  for (const campo of campos) {
+    const rotulo = ROTULOS[campo.name];
     if (campo.value.trim() === "") {
       campo.setAttribute("aria-invalid", "true");
       mostrarErro("Campo vazio", `Preencha o campo "${rotulo}".`);
@@ -1131,8 +831,8 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
   classificando = true;
   const focoNoBotao = document.activeElement === botao;
   botao.disabled = true;
-  rotuloBotao.textContent = "CLASSIFICANDO…";
-  cartaoResultado.setAttribute("aria-busy", "true");
+  rotuloBotao.textContent = "Classificando…";
+  $("cartao-resultado").setAttribute("aria-busy", "true");
   try {
     const resposta = await fetch("/classificar", {
       method: "POST",
@@ -1141,9 +841,10 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
     });
     const dados = await resposta.json();
     if (!resposta.ok) {
-      mostrarErro(`Entrada rejeitada (HTTP ${resposta.status})`, virgulaDecimal(mensagemDeErro(dados.detail)));
+      mostrarErro(`Entrada rejeitada (HTTP ${resposta.status})`, traduzirAviso(mensagemDeErro(dados.detail)));
     } else {
       mostrarResultado(dados);
+      destacarNova = true;
       carregarRegistros();   // a classificacao recem-feita ja entra na lista
     }
   } catch (erro) {
@@ -1151,8 +852,8 @@ document.getElementById("formulario").addEventListener("submit", async evento =>
   } finally {
     classificando = false;
     botao.disabled = false;
-    rotuloBotao.textContent = "CLASSIFICAR";
-    cartaoResultado.removeAttribute("aria-busy");
+    rotuloBotao.textContent = "Classificar";
+    $("cartao-resultado").removeAttribute("aria-busy");
     if (focoNoBotao) botao.focus();   // o botao desabilitado perde o foco; devolve
   }
 });
