@@ -53,7 +53,7 @@ Dois endereços ficam disponíveis:
 - `http://127.0.0.1:8000` — PARCUS, o painel de demonstração
 - `http://127.0.0.1:8000/docs` — documentação interativa da API
 
-O PARCUS mostra, numa única tela, o formulário com as doze variáveis, o resultado da classificação e o registro das últimas decisões. Três perfis de exemplo, extraídos do dataset, preenchem os campos com valores de apostadores reais de cada classe de risco, e o botão CLASSIFICAR envia os dados à API. No topo, quatro indicadores resumem a última classificação: índice de risco, classe prevista, probabilidade da classe e número de classificações na sessão. O resultado traz o índice num anel de 0 a 100, as três probabilidades e a intervenção recomendada. Os números aparecem com vírgula decimal, e os campos aceitam vírgula ou ponto na digitação; o envio à API usa sempre ponto. Há tema claro e escuro, que segue a preferência do sistema e pode ser alternado na barra lateral.
+O PARCUS reúne, na mesma página, o formulário com as doze variáveis, o resultado da classificação e o registro das últimas decisões. Três apostadores reais do dataset, um de cada classe de risco, preenchem os campos com um clique, e o botão Classificar envia os dados à API; os campos que mudam piscam de leve, e uma linha de ajuda no pé do formulário explica o campo em foco. No topo, quatro indicadores resumem a última classificação: índice de risco, classe prevista, probabilidade da classe e número de classificações na sessão, os três primeiros na cor do nível de risco. O resultado mostra o índice numa escala de 0 a 100, as três probabilidades numa barra única que soma 100% e a intervenção recomendada, com as ações em texto legível e o código da intervenção ao lado. A animação acompanha só o que muda: o índice conta do valor anterior até o novo junto com a escala, a barra de probabilidades se redistribui, a linha nova do registro entra com um realce, e a marca do cabeçalho — uma régua com marcador — desliza para a esquerda, o centro ou a direita na cor de risco baixo, médio ou alto. Quem desativa animações no sistema vê as mudanças sem movimento. Os números aparecem com vírgula decimal, e os campos aceitam vírgula ou ponto na digitação; o envio à API usa sempre ponto. Há tema claro, com moldura azul-petróleo, e tema escuro, com moldura grafite; o tema segue a preferência do sistema e pode ser alternado na barra lateral, cujos ícones também levam a cada seção da página. O texto usa a fonte Atkinson Hyperlegible Next, desenhada para leitura fácil.
 
 ---
 
@@ -162,7 +162,7 @@ A função verifica a presença das doze variáveis, valida os domínios, confer
 ```
 modelo/         Modelo serializado e metadados
 src/            API, função de predição e app Streamlit
-static/         Painel web PARCUS (index.html) e a fonte dos títulos (fonts/, licença OFL em static/fonts/LICENSE)
+static/         Painel web PARCUS (index.html)
 pipeline/       Preparação dos dados e treino, em ordem de execução
 experimentos/   Scripts dos experimentos de modelagem
 resultados/     Métricas e figuras gerados
@@ -251,4 +251,4 @@ Dados disponibilizados publicamente pelo Transparency Project, Division on Addic
 
 O código está sob a licença MIT (arquivo `LICENSE`).
 
-A fonte dos títulos do painel, `static/fonts/parcus-titulo-600.woff2`, é derivada da IBM Plex Sans (Copyright © 2017 IBM Corp.) e distribuída sob a SIL Open Font License 1.1. Como "Plex" é nome reservado e o arquivo é um subconjunto modificado, a família foi renomeada para "PARCUS Titulo". O texto da licença e as modificações estão em `static/fonts/LICENSE`.
+O painel carrega a fonte Atkinson Hyperlegible Next (Braille Institute of America) pelo Google Fonts, sob a SIL Open Font License 1.1; o arquivo da fonte não é distribuído neste repositório. Sem acesso à internet, o painel usa a fonte do sistema.
