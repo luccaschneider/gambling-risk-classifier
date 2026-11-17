@@ -210,14 +210,27 @@ legend { padding: 16px 0 4px; font-size: 13px; font-weight: 600; color: var(--te
 .legenda .ponto { width: 8px; height: 8px; }
 .legenda b { font-weight: 500; color: var(--texto); font-variant-numeric: tabular-nums; }
 .legenda .lider b { font-weight: 600; }
-.intervencao { border-top: 1px solid var(--borda); padding-top: 20px; }
-.intervencao-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.intervencao-codigo { font-size: 12px; color: var(--texto-3); font-family: var(--mono); }
-.intervencao h3 { margin: 4px 0 0; font-size: 17px; font-weight: 600; }
-.intervencao p { margin: 8px 0 0; max-width: 62ch; color: var(--texto-2); }
-.intervencao-acoes { margin-top: 12px; font-size: 13px; color: var(--texto-3); }
-.intervencao-acoes span { color: var(--texto); }
-.avisos { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--texto-2); }
+/* intervencao: painel tingido na cor do nivel, com a etapa da escalada em
+   destaque, para o operador ver a gravidade sem ler o texto */
+.intervencao { padding: 20px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--nivel) 45%, transparent); background: color-mix(in srgb, var(--nivel) 9%, var(--superficie)); }
+.intervencao-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.intervencao-rotulo { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--nivel); }
+.intervencao-rotulo svg { width: 18px; height: 18px; flex: none; }
+.intervencao h3 { margin: 8px 0 0; font-size: 22px; font-weight: 600; line-height: 1.2; color: var(--nivel); }
+.escalada { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 16px; }
+.escalada span { height: 32px; display: grid; place-items: center; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--texto-3); background: var(--trilha); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+.escalada span:first-child { border-radius: 8px 4px 4px 8px; }
+.escalada span:last-child { border-radius: 4px 8px 8px 4px; }
+.escalada .feita { background: color-mix(in srgb, var(--nivel) 30%, var(--trilha)); color: var(--texto-2); }
+.escalada .atual { background: var(--nivel); color: #ffffff; font-weight: 600; }
+[data-theme="dark"] .escalada .atual { color: #14181d; }
+.intervencao p { margin: 16px 0 0; max-width: 62ch; color: var(--texto); }
+.intervencao-acoes { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 500; }
+.intervencao-acoes li { display: flex; align-items: center; gap: 8px; }
+.intervencao-acoes svg { width: 16px; height: 16px; flex: none; color: var(--nivel); }
+/* avisos de consistencia das variaveis: caixa propria em ambar */
+.avisos { margin-top: 16px; padding: 16px 20px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--medio) 45%, transparent); background: color-mix(in srgb, var(--medio) 9%, var(--superficie)); display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--texto); }
+.avisos strong { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--medio); }
 .avisos div { display: flex; gap: 8px; }
 .avisos svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: var(--medio); }
 .vazio { color: var(--texto-2); max-width: 40ch; margin: 0; }
@@ -465,6 +478,12 @@ const INTERVENCAO_TITULO = {
   LIMITE_TEMPORARIO: "Limite de depósito e pausas",
   SUSPENSAO_TEMPORARIA: "Suspensão e suporte",
 };
+// escalada proporcional ao risco: notificar, limitar, suspender
+const ESCALADA = [
+  { codigo: "MONITORAMENTO_INFORMATIVO", rotulo: "Notificar" },
+  { codigo: "LIMITE_TEMPORARIO", rotulo: "Limitar" },
+  { codigo: "SUSPENSAO_TEMPORARIA", rotulo: "Suspender" },
+];
 const ACAO_TIPO = {
   ENVIAR_NOTIFICACAO: "Enviar notificação",
   APLICAR_LIMITE_DEPOSITO: "Aplicar limite de depósito",
@@ -698,16 +717,31 @@ function mostrarResultado(dados) {
     `<div class="${i === lider ? "lider" : ""}"><span class="ponto" style="--nivel:${n.cor}" aria-hidden="true"></span>${n.curto} <b>${decimal(probs[i], 1)}%</b></div>`).join("");
 
   // intervencao e avisos
-  const acoes = dados.intervencao.acoes.map(a => ACAO_TIPO[a.tipo] ?? a.tipo).join(", ");
+  const ICONE_ALERTA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 3 20h18z"/><path d="M12 10v4M12 17v.1"/></svg>`;
+  const ICONE_INFO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.1"/></svg>`;
+  const ICONE_ACAO =`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>`;
+  // escalada das tres intervencoes; a etapa desta classificacao fica em destaque
+  const etapa = ESCALADA.findIndex(e => e.codigo === codigo);
+  const escalada = etapa < 0 ? "" : `
+      <div class="escalada" role="img" aria-label="Etapa ${etapa + 1} de 3 da escalada: ${ESCALADA[etapa].rotulo}">
+        ${ESCALADA.map((e, i) => `<span class="${i < etapa ? "feita" : i === etapa ? "atual" : ""}">${e.rotulo}</span>`).join("")}
+      </div>`;
+  const acoes = dados.intervencao.acoes.map(a =>
+    `<li title="${escapar(a.tipo)}">${ICONE_ACAO}${escapar(ACAO_TIPO[a.tipo] ?? a.tipo)}</li>`).join("");
   const avisos = dados.avisos?.length
-    ? `<div class="avisos entra">${dados.avisos.map(a => `<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 4 3 20h18z"/><path d="M12 10v4M12 17v.1"/></svg>${escapar(traduzirAviso(a))}</div>`).join("")}</div>`
+    ? `<div class="avisos entra" role="note">
+         <strong>${ICONE_ALERTA}${dados.avisos.length === 1 ? "1 aviso de consistência" : `${dados.avisos.length} avisos de consistência`}</strong>
+         ${dados.avisos.map(a => `<div>${escapar(traduzirAviso(a))}</div>`).join("")}
+       </div>`
     : "";
   $("detalhe").innerHTML = `
-    <div class="intervencao entra">
-      <div class="intervencao-topo"><span class="rotulo" style="margin:0">Intervenção recomendada</span><span class="intervencao-codigo">${escapar(codigo)}</span></div>
-      <h3>${escapar(titulo)}</h3>
+    <div class="intervencao entra" style="--nivel:${nivel.cor}">
+      <div class="intervencao-topo">
+        <span class="intervencao-rotulo">${etapa === 0 ? ICONE_INFO : ICONE_ALERTA}Intervenção recomendada para ${nivel.nome.toLowerCase()}</span>
+      </div>
+      <h3 title="${escapar(codigo)}">${escapar(titulo)}</h3>${escalada}
       <p>${escapar(dados.intervencao.descricao)}</p>
-      <div class="intervencao-acoes">Ações: <span>${escapar(acoes)}</span></div>
+      <ul class="intervencao-acoes" aria-label="Ações">${acoes}</ul>
     </div>${avisos}`;
 
   // resumo
